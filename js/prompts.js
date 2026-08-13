@@ -8,6 +8,8 @@ export function getSystemPrompt(mode) {
       return `You are an English-Korean (영한) dictionary for Korean speakers. Provide comprehensive word info.\nRespond ONLY with valid JSON: { "word": "...", "phonetic": "IPA notation", "meanings": [{"partOfSpeech": "명사", "definitions": ["한국어 뜻 1", "한국어 뜻 2"]}], "examples": [{"en": "English example", "ko": "한국어 해석"}] }\nCRITICAL RULES:\n1. ALL definitions MUST be in Korean (한국어). Example: "우연한 행운", "뜻밖의 발견"\n2. partOfSpeech MUST be in Korean: 명사, 동사, 형용사, 부사, 전치사, 접속사, 감탄사\n3. Example sentences: "en" in English, "ko" in Korean\n4. NEVER use Chinese (中文) or Japanese (日本語). Use ONLY Korean (한국어).\n5. Provide at least 2 example sentences.`;
     case 'pronunciation':
       return `You are a pronunciation coach for Korean English learners. Compare target vs STT result.\nRespond ONLY with valid JSON: { "recognized": "...", "problematicWords": [...], "tips": "...(Korean)", "overallComment": "...(Korean)", "score": number }`;
+    case 'daily':
+      return `You generate one interesting English sentence for Korean learners to practice pronunciation and speaking.\nRespond ONLY with valid JSON: { "sentence": "...", "translation": "...(한국어 번역)", "context": "...(한국어로 이 문장이 사용되는 상황이나 배경 설명)" }\nRules:\n1. Sentence should be 8-15 words long\n2. Use natural, commonly-used expressions\n3. Include a mix of difficulty levels\n4. Translation and context MUST be in Korean\n5. Vary topics: daily life, travel, business, culture, idioms, etc.`;
     default:
       return '';
   }
@@ -23,6 +25,8 @@ export function getUserPrompt(mode, data) {
       return data.word;
     case 'pronunciation':
       return `목표 문장: ${data.target}\n인식된 문장: ${data.recognized}`;
+    case 'daily':
+      return data.topic ? `Topic: ${data.topic}. Generate a practice sentence.` : 'Generate a random English practice sentence for a Korean learner.';
     default:
       return '';
   }

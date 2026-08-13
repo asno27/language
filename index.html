@@ -41,6 +41,14 @@
         <span class="tab-icon">🎙️</span>
         <span class="tab-label">발음</span>
       </button>
+      <button class="tab-btn" data-tab="vocabulary">
+        <span class="tab-icon">📓</span>
+        <span class="tab-label">단어장</span>
+      </button>
+      <button class="tab-btn" data-tab="daily">
+        <span class="tab-icon">📺</span>
+        <span class="tab-label">따라하기</span>
+      </button>
     </nav>
 
     <!-- Main Content Area -->
@@ -147,6 +155,97 @@
             <span class="placeholder-icon">🗣️</span>
             <p>발음 피드백이 여기에 표시됩니다</p>
           </div>
+        </div>
+      </section>
+
+      <!-- Vocabulary Pane -->
+      <section class="tab-pane" id="pane-vocabulary">
+        <div class="glass-card">
+          <div class="card-header">
+            <h2>📓 나만의 단어장</h2>
+            <p class="card-desc">저장한 단어를 플래시카드로 복습하세요</p>
+          </div>
+          <div class="vocab-stats">
+            <div class="stat-item"><span class="stat-number" id="vocab-total">0</span><span class="stat-label">저장된 단어</span></div>
+            <div class="stat-item"><span class="stat-number" id="vocab-review-count">0</span><span class="stat-label">복습할 단어</span></div>
+            <div class="stat-item"><span class="stat-number" id="vocab-mastered">0</span><span class="stat-label">마스터</span></div>
+          </div>
+          <div class="vocab-actions">
+            <button class="submit-btn" id="start-review"><span class="btn-text">🧠 복습 시작</span></button>
+          </div>
+          <div class="vocab-list" id="vocab-list">
+            <div class="placeholder-message"><span class="placeholder-icon">📝</span><p>사전에서 단어를 검색하고 ⭐ 버튼으로 저장하세요</p></div>
+          </div>
+        </div>
+
+        <!-- Flashcard Review Overlay -->
+        <div class="flashcard-overlay" id="flashcard-overlay" style="display:none;">
+          <div class="flashcard-container">
+            <div class="flashcard-progress"><span id="flashcard-current">1</span> / <span id="flashcard-total">0</span></div>
+            <div class="flashcard" id="flashcard">
+              <div class="flashcard-front">
+                <div class="flashcard-word" id="flashcard-word"></div>
+                <div class="flashcard-phonetic" id="flashcard-phonetic"></div>
+                <button class="audio-btn" id="flashcard-audio">🔊 발음 듣기</button>
+                <p class="flashcard-hint">카드를 클릭하면 뜻이 보여요 👆</p>
+              </div>
+              <div class="flashcard-back">
+                <div class="flashcard-meaning" id="flashcard-meaning"></div>
+                <div class="flashcard-rating">
+                  <p>얼마나 잘 기억하셨나요?</p>
+                  <div class="rating-buttons">
+                    <button class="rating-btn rating-hard" data-quality="1">😰 어려움</button>
+                    <button class="rating-btn rating-ok" data-quality="3">🤔 보통</button>
+                    <button class="rating-btn rating-easy" data-quality="5">😊 쉬움</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="flashcard-close" id="flashcard-close">✕ 닫기</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Daily Sentence Pane -->
+      <section class="tab-pane" id="pane-daily">
+        <div class="glass-card input-card">
+          <div class="card-header">
+            <h2>📺 오늘의 문장 따라하기</h2>
+            <p class="card-desc">매일 새로운 영어 문장을 듣고 따라 말해보세요</p>
+          </div>
+          <div class="daily-sentence" id="daily-sentence">
+            <div class="placeholder-message"><span class="placeholder-icon">🎯</span><p>버튼을 눌러 오늘의 문장을 받아보세요</p></div>
+          </div>
+          <div class="daily-practice" id="daily-practice" style="display:none;">
+            <div class="listen-buttons">
+              <button class="audio-btn" id="daily-listen-slow">🐢 느리게 듣기</button>
+              <button class="audio-btn" id="daily-listen-normal">🔊 보통 속도</button>
+              <button class="audio-btn" id="daily-listen-fast">🐇 빠르게 듣기</button>
+            </div>
+            <div class="mic-section">
+              <button class="mic-btn" id="daily-mic-btn" title="따라 말해보세요">
+                <svg class="mic-icon" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                  <line x1="12" y1="19" x2="12" y2="23"></line>
+                  <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+                <span class="mic-pulse"></span>
+              </button>
+              <p class="mic-status" id="daily-mic-status">문장을 듣고 따라 말해보세요!</p>
+            </div>
+            <div class="stt-result" id="daily-stt-result" style="display:none;">
+              <span class="stt-label">내가 말한 문장:</span>
+              <p class="stt-text" id="daily-stt-text"></p>
+            </div>
+          </div>
+          <div class="input-actions" style="margin-top:1rem">
+            <span></span>
+            <button class="submit-btn" id="daily-new-btn"><span class="btn-text">🎲 새 문장 받기</span><span class="btn-icon">→</span></button>
+          </div>
+        </div>
+        <div class="glass-card output-card" id="daily-output">
+          <div class="placeholder-message"><span class="placeholder-icon">🗣️</span><p>문장을 듣고 따라 말하면 피드백을 받을 수 있어요</p></div>
         </div>
       </section>
 

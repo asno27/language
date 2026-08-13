@@ -1,5 +1,6 @@
 import { callGroq, lookupDictionary } from './api.js';
 import { SpeechManager, speak } from './speech.js';
+import { saveWord, deleteWord, getAllWords, getWordsForReview, getMasteredCount, updateReview, isWordSaved, getTotalCount } from './vocabulary.js';
 
 // TTS 함수를 전역으로 노출 (innerHTML onclick에서 사용)
 window.speakText = speak;
@@ -29,6 +30,36 @@ const sttText = $('#stt-text');
 const pronunciationOutput = $('#pronunciation-output');
 const loading = $('#loading');
 const speech = new SpeechManager();
+
+// Vocabulary DOM
+const vocabTotal = $('#vocab-total');
+const vocabReviewCount = $('#vocab-review-count');
+const vocabMastered = $('#vocab-mastered');
+const startReviewBtn = $('#start-review');
+const vocabList = $('#vocab-list');
+const flashcardOverlay = $('#flashcard-overlay');
+const flashcard = $('#flashcard');
+const flashcardWord = $('#flashcard-word');
+const flashcardPhonetic = $('#flashcard-phonetic');
+const flashcardMeaning = $('#flashcard-meaning');
+const flashcardAudio = $('#flashcard-audio');
+const flashcardCurrent = $('#flashcard-current');
+const flashcardTotal = $('#flashcard-total');
+const flashcardClose = $('#flashcard-close');
+
+// Daily DOM
+const dailySentence = $('#daily-sentence');
+const dailyPractice = $('#daily-practice');
+const dailyListenSlow = $('#daily-listen-slow');
+const dailyListenNormal = $('#daily-listen-normal');
+const dailyListenFast = $('#daily-listen-fast');
+const dailyMicBtn = $('#daily-mic-btn');
+const dailyMicStatus = $('#daily-mic-status');
+const dailySttResult = $('#daily-stt-result');
+const dailySttText = $('#daily-stt-text');
+const dailyOutput = $('#daily-output');
+const dailyNewBtn = $('#daily-new-btn');
+const dailySpeech = new SpeechManager();
 
 // Tab Navigation
 tabBtns.forEach(btn => {
@@ -111,6 +142,10 @@ function renderDictionaryResult(dictData, llmData) {
     html += `<button class="audio-btn" onclick="new Audio('${dictData.audioUrl}').play()">🔊 원어민 발음</button> `;
   }
   html += `<button class="audio-btn" onclick="speakText('${escapeHtml(word).replace(/'/g, "\\'")}')">${dictData?.audioUrl ? '🗣️ TTS 발음' : '🔊 발음 듣기'}</button>`;
+  
+  // Add save-to-vocabulary button
+  const saved = isWordSaved(word);
+  html += ` <button class="vocab-save-btn ${saved ? 'saved' : ''}" id="dict-save-btn" ${saved ? 'disabled' : ''} data-word="${escapeHtml(word)}" data-phonetic="${escapeHtml(phonetic)}">${saved ? '✅ 저장됨' : '⭐ 단어장에 저장'}</button>`;
   html += `</div>`;
   if (llmData?.meanings?.length) {
     html += `<div class="result-section fade-in"><div class="result-label pos">🏷️ 품사 및 뜻</div>`;
@@ -123,6 +158,24 @@ function renderDictionaryResult(dictData, llmData) {
     html += `</div>`;
   }
   dictionaryOutput.innerHTML = html;
+
+  const saveBtn = document.getElementById('dict-save-btn');
+  if (saveBtn && !saveBtn.disabled) {
+    saveBtn.addEventListener('click', () => {
+      const wordData = {
+        word: word,
+        phonetic: phonetic,
+        meanings: llmData?.meanings || [],
+        audioUrl: dictData?.audioUrl || ''
+      };
+      if (saveWord(wordData)) {
+        saveBtn.textContent = '✅ 저장됨';
+        saveBtn.classList.add('saved');
+        saveBtn.disabled = true;
+        updateVocabStats();
+      }
+    });
+  }
 }
 
 async function handleDictionarySubmit() {
@@ -148,6 +201,231 @@ function renderPronunciationResult(data) {
   html += `<div class="result-section fade-in"><div class="result-label overall">👏 총평 ${data.score !== undefined ? `<span style="background:linear-gradient(135deg,var(--accent-1),var(--accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.1rem;margin-left:8px">${data.score}점</span>` : ''}</div><div class="result-text">${escapeHtml(data.overallComment)}</div></div>`;
   pronunciationOutput.innerHTML = html;
 }
+
+// === VOCABULARY ===
+function updateVocabStats() {
+  vocabTotal.textContent = getTotalCount();
+  vocabReviewCount.textContent = getWordsForReview().length;
+  vocabMastered.textContent = getMasteredCount();
+}
+
+function renderVocabList() {
+  const words = getAllWords();
+  updateVocabStats();
+  
+  if (words.length === 0) {
+    vocabList.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">📝</span><p>사전에서 단어를 검색하고 ⭐ 버튼으로 저장하세요</p></div>`;
+    return;
+  }
+  
+  let html = '';
+  words.forEach(w => {
+    const badge = w.interval >= 21 ? 'mastered' : w.repetitions > 0 ? 'learning' : 'new';
+    const badgeText = w.interval >= 21 ? '마스터' : w.repetitions > 0 ? '학습중' : '새 단어';
+    const meaningText = w.meanings?.[0]?.definitions?.[0] || '';
+    html += `<div class="vocab-item">
+      <div class="vocab-item-info">
+        <span class="vocab-item-word">${escapeHtml(w.word)}</span>
+        <span class="vocab-item-badge ${badge}">${badgeText}</span>
+        <div class="vocab-item-meaning">${escapeHtml(meaningText)}</div>
+      </div>
+      <div class="vocab-item-actions">
+        <button class="audio-btn" style="padding:4px 10px;font-size:0.75rem" onclick="speakText('${escapeHtml(w.word).replace(/'/g, "\\\'")}')">🔊</button>
+        <button class="vocab-delete-btn" data-id="${w.id}" title="삭제">🗑️</button>
+      </div>
+    </div>`;
+  });
+  vocabList.innerHTML = html;
+  
+  // Delete button handlers
+  vocabList.querySelectorAll('.vocab-delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deleteWord(btn.dataset.id);
+      renderVocabList();
+    });
+  });
+}
+
+// Flashcard Review
+let reviewWords = [];
+let currentCardIndex = 0;
+
+function startFlashcardReview() {
+  reviewWords = getWordsForReview();
+  if (reviewWords.length === 0) {
+    alert('복습할 단어가 없습니다! 🎉');
+    return;
+  }
+  currentCardIndex = 0;
+  flashcardOverlay.style.display = 'flex';
+  showCard();
+}
+
+function showCard() {
+  if (currentCardIndex >= reviewWords.length) {
+    flashcardOverlay.style.display = 'none';
+    renderVocabList();
+    alert(`복습 완료! 총 ${reviewWords.length}개 단어를 복습했습니다. 🎉`);
+    return;
+  }
+  const w = reviewWords[currentCardIndex];
+  flashcardCurrent.textContent = currentCardIndex + 1;
+  flashcardTotal.textContent = reviewWords.length;
+  flashcardWord.textContent = w.word;
+  flashcardPhonetic.textContent = w.phonetic || '';
+  const meaningText = w.meanings?.map(m => `${m.partOfSpeech}: ${m.definitions?.join(', ')}`).join('\\n') || '뜻 정보 없음';
+  flashcardMeaning.textContent = meaningText;
+  flashcard.classList.remove('flipped');
+}
+
+flashcard.addEventListener('click', (e) => {
+  if (e.target.closest('.rating-btn') || e.target.closest('.audio-btn')) return;
+  flashcard.classList.toggle('flipped');
+});
+
+flashcardAudio.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const w = reviewWords[currentCardIndex];
+  if (w?.audioUrl) new Audio(w.audioUrl).play();
+  else speak(w.word);
+});
+
+document.querySelectorAll('.rating-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const quality = parseInt(btn.dataset.quality);
+    const w = reviewWords[currentCardIndex];
+    updateReview(w.id, quality);
+    currentCardIndex++;
+    showCard();
+  });
+});
+
+flashcardClose.addEventListener('click', () => {
+  flashcardOverlay.style.display = 'none';
+  renderVocabList();
+});
+
+startReviewBtn.addEventListener('click', startFlashcardReview);
+
+// Update vocab when switching to vocabulary tab
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.tab === 'vocabulary') renderVocabList();
+    if (btn.dataset.tab === 'daily') loadDailySentence();
+  });
+});
+
+// === DAILY SENTENCE ===
+let currentDailySentence = null;
+
+async function loadDailySentence() {
+  // Check if we already have today's sentence
+  const stored = localStorage.getItem('daily_sentence');
+  if (stored) {
+    try {
+      const data = JSON.parse(stored);
+      const storedDate = new Date(data.date).toDateString();
+      const today = new Date().toDateString();
+      if (storedDate === today) {
+        displayDailySentence(data);
+        return;
+      }
+    } catch {}
+  }
+  await generateDailySentence();
+}
+
+async function generateDailySentence() {
+  dailySentence.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⏳</span><p>오늘의 문장을 생성 중...</p></div>`;
+  dailyPractice.style.display = 'none';
+  try {
+    const result = await callGroq('daily', {});
+    const data = { ...result, date: new Date().toISOString() };
+    localStorage.setItem('daily_sentence', JSON.stringify(data));
+    displayDailySentence(data);
+  } catch (e) {
+    dailySentence.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⚠️</span><p>문장 생성에 실패했습니다: ${escapeHtml(e.message)}</p></div>`;
+  }
+}
+
+function displayDailySentence(data) {
+  currentDailySentence = data;
+  dailySentence.innerHTML = \`
+    <div class="daily-sentence-text">\${escapeHtml(data.sentence)}</div>
+    <div class="daily-sentence-translation">📝 \${escapeHtml(data.translation)}</div>
+    \${data.context ? \`<div class="daily-sentence-context">💡 \${escapeHtml(data.context)}</div>\` : ''}
+  \`;
+  dailyPractice.style.display = 'block';
+}
+
+// Daily TTS buttons
+dailyListenSlow.addEventListener('click', () => {
+  if (!currentDailySentence) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(currentDailySentence.sentence);
+  u.lang = 'en-US'; u.rate = 0.6;
+  window.speechSynthesis.speak(u);
+});
+
+dailyListenNormal.addEventListener('click', () => {
+  if (!currentDailySentence) return;
+  speak(currentDailySentence.sentence);
+});
+
+dailyListenFast.addEventListener('click', () => {
+  if (!currentDailySentence) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(currentDailySentence.sentence);
+  u.lang = 'en-US'; u.rate = 1.2;
+  window.speechSynthesis.speak(u);
+});
+
+// Daily STT setup
+dailySpeech.onStart = () => { dailyMicBtn.classList.add('recording'); dailyMicStatus.textContent = '🔴 듣고 있습니다...'; dailyMicStatus.style.color = 'var(--error)'; };
+dailySpeech.onEnd = () => { dailyMicBtn.classList.remove('recording'); dailyMicStatus.textContent = '다시 시도하려면 마이크를 누르세요'; dailyMicStatus.style.color = ''; };
+dailySpeech.onError = (error) => {
+  dailyMicBtn.classList.remove('recording');
+  let msg = '음성 인식 오류가 발생했습니다.';
+  if (error === 'no-speech') msg = '음성이 감지되지 않았습니다.';
+  else if (error === 'not-allowed') msg = '마이크 사용 권한이 필요합니다.';
+  dailyMicStatus.textContent = msg; dailyMicStatus.style.color = 'var(--error)';
+};
+dailySpeech.onResult = async (text) => {
+  dailySttResult.style.display = 'block';
+  dailySttText.textContent = text;
+  if (!currentDailySentence) return;
+  showLoading();
+  try {
+    const result = await callGroq('pronunciation', { target: currentDailySentence.sentence, recognized: text });
+    let html = '';
+    // Score badge
+    const scoreClass = result.score >= 80 ? 'good' : result.score >= 50 ? 'ok' : 'needs-work';
+    html += `<div class="result-section fade-in" style="text-align:center"><div class="daily-score ${scoreClass}">🎯 ${result.score}점</div></div>`;
+    html += `<div class="result-section fade-in"><div class="result-label recognized">🎙️ 인식된 문장</div><div class="result-text highlight">${escapeHtml(result.recognized)}</div></div>`;
+    if (result.problematicWords?.length) {
+      html += `<div class="result-section fade-in"><div class="result-label warning">⚠️ 주의할 발음</div><div class="result-text">${result.problematicWords.map(w => `<span style="background:rgba(255,107,107,0.15);color:var(--error);padding:2px 8px;border-radius:4px;margin-right:6px">${escapeHtml(w)}</span>`).join(' ')}</div></div>`;
+    }
+    if (result.tips) html += `<div class="result-section fade-in"><div class="result-label tip">🗣️ 발음 팁</div><div class="result-text">${escapeHtml(result.tips)}</div></div>`;
+    if (result.overallComment) html += `<div class="result-section fade-in"><div class="result-label overall">👏 총평</div><div class="result-text">${escapeHtml(result.overallComment)}</div></div>`;
+    dailyOutput.innerHTML = html;
+  } catch (e) { showError(dailyOutput, e.message); }
+  finally { hideLoading(); }
+};
+
+dailyMicBtn.addEventListener('click', () => {
+  if (!currentDailySentence) {
+    dailyMicStatus.textContent = '⚠️ 먼저 오늘의 문장을 불러와 주세요!';
+    dailyMicStatus.style.color = 'var(--warning-1)';
+    return;
+  }
+  dailySpeech.start();
+});
+
+dailyNewBtn.addEventListener('click', generateDailySentence);
+
+// Initialize vocab stats on load
+updateVocabStats();
 
 // Speech setup
 if (!speech.isSupported) {

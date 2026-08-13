@@ -497,6 +497,376 @@ body::after {
   animation: fadeSlideIn 0.5s ease forwards;
 }
 
+/* 19. Vocabulary Stats */
+.vocab-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-primary-1), var(--accent-primary-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+  display: block;
+}
+
+.vocab-actions {
+  margin-bottom: 1.5rem;
+}
+
+/* 20. Vocabulary List */
+.vocab-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.vocab-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: var(--transition);
+}
+
+.vocab-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.vocab-item-info {
+  flex: 1;
+}
+
+.vocab-item-word {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-heading);
+}
+
+.vocab-item-meaning {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 2px;
+}
+
+.vocab-item-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+
+.vocab-item-badge.new {
+  background: rgba(102, 126, 234, 0.2);
+  color: var(--accent-primary-1);
+}
+
+.vocab-item-badge.learning {
+  background: rgba(247, 151, 30, 0.2);
+  color: var(--warning-1);
+}
+
+.vocab-item-badge.mastered {
+  background: rgba(67, 233, 123, 0.2);
+  color: var(--success-1);
+}
+
+.vocab-item-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.vocab-delete-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px;
+  transition: var(--transition);
+}
+
+.vocab-delete-btn:hover {
+  color: var(--error);
+}
+
+.vocab-save-btn {
+  background: rgba(255, 210, 0, 0.15);
+  border: 1px solid rgba(255, 210, 0, 0.3);
+  border-radius: 20px;
+  padding: 6px 14px;
+  color: var(--warning-2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vocab-save-btn:hover {
+  background: rgba(255, 210, 0, 0.25);
+  transform: scale(1.05);
+}
+
+.vocab-save-btn.saved {
+  background: rgba(67, 233, 123, 0.15);
+  border-color: rgba(67, 233, 123, 0.3);
+  color: var(--success-1);
+  cursor: default;
+}
+
+/* 21. Flashcard */
+.flashcard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 12, 41, 0.92);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flashcard-container {
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.flashcard-progress {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.flashcard {
+  width: 100%;
+  min-height: 300px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.flashcard-front, .flashcard-back {
+  width: 100%;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: transform 0.6s ease;
+  backface-visibility: hidden;
+}
+
+.flashcard-back {
+  display: none;
+}
+
+.flashcard.flipped .flashcard-front {
+  display: none;
+}
+
+.flashcard.flipped .flashcard-back {
+  display: flex;
+}
+
+.flashcard-word {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.flashcard-phonetic {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.flashcard-hint {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 1rem;
+}
+
+.flashcard-meaning {
+  font-size: 1.3rem;
+  color: var(--text-heading);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.flashcard-rating {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.flashcard-rating p {
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.rating-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.rating-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.rating-btn:hover {
+  transform: translateY(-2px);
+}
+
+.rating-hard {
+  background: rgba(255, 107, 107, 0.2);
+  color: var(--error);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.rating-ok {
+  background: rgba(247, 151, 30, 0.2);
+  color: var(--warning-1);
+  border: 1px solid rgba(247, 151, 30, 0.3);
+}
+
+.rating-easy {
+  background: rgba(67, 233, 123, 0.2);
+  color: var(--success-1);
+  border: 1px solid rgba(67, 233, 123, 0.3);
+}
+
+.flashcard-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 10px 24px;
+  color: white;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.flashcard-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 22. Daily Sentence */
+.daily-sentence {
+  margin-bottom: 1rem;
+}
+
+.daily-sentence-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  line-height: 1.6;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border-left: 4px solid var(--accent-primary-1);
+  margin-bottom: 0.8rem;
+}
+
+.daily-sentence-translation {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  padding-left: 1.5rem;
+}
+
+.daily-sentence-context {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0.8rem 1.5rem;
+  font-style: italic;
+}
+
+.listen-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.daily-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.daily-score.good {
+  background: rgba(67, 233, 123, 0.15);
+  color: var(--success-1);
+  border: 1px solid rgba(67, 233, 123, 0.3);
+}
+
+.daily-score.ok {
+  background: rgba(247, 151, 30, 0.15);
+  color: var(--warning-1);
+  border: 1px solid rgba(247, 151, 30, 0.3);
+}
+
+.daily-score.needs-work {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--error);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
 /* 17. Responsive */
 @media (max-width: 768px) {
   #app {
@@ -527,6 +897,33 @@ body::after {
   
   .submit-btn {
     justify-content: center;
+  }
+  
+  .tab-btn {
+    min-width: 0;
+    padding: 0.6rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .tab-label {
+    display: none;
+  }
+  
+  .tab-icon {
+    font-size: 1.3rem;
+  }
+  
+  .vocab-stats {
+    flex-direction: column;
+  }
+  
+  .rating-buttons {
+    flex-direction: column;
+  }
+  
+  .listen-buttons {
+    flex-direction: column;
+    align-items: center;
   }
 }
 
