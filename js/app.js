@@ -1,5 +1,8 @@
 import { callGroq, lookupDictionary } from './api.js';
-import { SpeechManager } from './speech.js';
+import { SpeechManager, speak } from './speech.js';
+
+// TTS 함수를 전역으로 노출 (innerHTML onclick에서 사용)
+window.speakText = speak;
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -53,10 +56,12 @@ function showError(el, msg) {
 function renderWritingResult(data) {
   let html = '';
   if (data.isCorrect) {
-    html = `<div class="result-section fade-in"><div class="result-label correction">✨ 완벽한 문장!</div><div class="result-text highlight">${escapeHtml(data.corrected)}</div></div>
+    html = `<div class="result-section fade-in"><div class="result-label correction">✨ 완벽한 문장!</div><div class="result-text highlight">${escapeHtml(data.corrected)}</div>
+    <button class="audio-btn" onclick="speakText('${escapeHtml(data.corrected).replace(/'/g, "\\'")}')">🔊 들어보기</button></div>
     <div class="result-section fade-in"><div class="result-label feedback">💡 피드백</div><div class="result-text">${escapeHtml(data.feedback)}</div></div>`;
   } else {
-    html = `<div class="result-section fade-in"><div class="result-label correction">🔄 교정된 문장</div><div class="result-text highlight">${escapeHtml(data.corrected)}</div></div>
+    html = `<div class="result-section fade-in"><div class="result-label correction">🔄 교정된 문장</div><div class="result-text highlight">${escapeHtml(data.corrected)}</div>
+    <button class="audio-btn" onclick="speakText('${escapeHtml(data.corrected).replace(/'/g, "\\'")}')">🔊 들어보기</button></div>
     <div class="result-section fade-in"><div class="result-label feedback">💡 피드백</div><div class="result-text">${escapeHtml(data.feedback)}</div></div>`;
     if (data.suggestion) {
       html += `<div class="result-section fade-in"><div class="result-label suggestion">🌟 더 자연스러운 표현</div><div class="result-text">${escapeHtml(data.suggestion)}</div></div>`;
@@ -78,7 +83,9 @@ writingInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ct
 
 // === TRANSLATION ===
 function renderTranslationResult(data) {
-  let html = `<div class="result-section fade-in"><div class="result-label translation">🌐 번역 결과 (${data.sourceLanguage === 'ko' ? '한→영' : '영→한'})</div><div class="result-text highlight">${escapeHtml(data.translated)}</div></div>`;
+  const isEnglishResult = data.sourceLanguage === 'ko';
+  let html = `<div class="result-section fade-in"><div class="result-label translation">🌐 번역 결과 (${data.sourceLanguage === 'ko' ? '한→영' : '영→한'})</div><div class="result-text highlight">${escapeHtml(data.translated)}</div>
+  ${isEnglishResult ? `<button class="audio-btn" onclick="speakText('${escapeHtml(data.translated).replace(/'/g, "\\'")}')">🔊 영어 발음 듣기</button>` : ''}</div>`;
   if (data.note) html += `<div class="result-section fade-in"><div class="result-label note">📝 참고 사항</div><div class="result-text">${escapeHtml(data.note)}</div></div>`;
   translationOutput.innerHTML = html;
 }
@@ -99,7 +106,11 @@ function renderDictionaryResult(dictData, llmData) {
   const word = llmData?.word || dictData?.word || '';
   const phonetic = dictData?.phonetic || llmData?.phonetic || '';
   let html = `<div class="result-section fade-in"><div class="result-label word-title">📖 ${escapeHtml(word)} ${phonetic ? `<span style="font-weight:400;color:var(--text-muted);font-size:0.9rem">${escapeHtml(phonetic)}</span>` : ''}</div>`;
-  if (dictData?.audioUrl) html += `<button class="audio-btn" onclick="new Audio('${dictData.audioUrl}').play()">🔊 발음 듣기</button>`;
+  // 발음 듣기: Free Dictionary API 음성 있으면 사용, 없으면 TTS
+  if (dictData?.audioUrl) {
+    html += `<button class="audio-btn" onclick="new Audio('${dictData.audioUrl}').play()">🔊 원어민 발음</button> `;
+  }
+  html += `<button class="audio-btn" onclick="speakText('${escapeHtml(word).replace(/'/g, "\\'")}')">${dictData?.audioUrl ? '🗣️ TTS 발음' : '🔊 발음 듣기'}</button>`;
   html += `</div>`;
   if (llmData?.meanings?.length) {
     html += `<div class="result-section fade-in"><div class="result-label pos">🏷️ 품사 및 뜻</div>`;
@@ -108,7 +119,7 @@ function renderDictionaryResult(dictData, llmData) {
   }
   if (llmData?.examples?.length) {
     html += `<div class="result-section fade-in"><div class="result-label example">💬 예문</div>`;
-    llmData.examples.forEach(ex => { html += `<div class="result-text" style="margin-bottom:8px">• ${escapeHtml(ex.en)}<br><span style="color:var(--text-muted);font-size:0.9rem">→ ${escapeHtml(ex.ko)}</span></div>`; });
+    llmData.examples.forEach(ex => { html += `<div class="result-text" style="margin-bottom:8px">• ${escapeHtml(ex.en)} <button class="audio-btn" style="padding:4px 10px;font-size:0.75rem" onclick="speakText('${escapeHtml(ex.en).replace(/'/g, "\\'")}')"">🔊</button><br><span style="color:var(--text-muted);font-size:0.9rem">→ ${escapeHtml(ex.ko)}</span></div>`; });
     html += `</div>`;
   }
   dictionaryOutput.innerHTML = html;

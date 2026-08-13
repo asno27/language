@@ -48,3 +48,18 @@ export class SpeechManager {
     if (this.recognition && this.isListening) this.recognition.stop();
   }
 }
+
+/**
+ * TTS(텍스트 음성 변환) - 브라우저 내장 SpeechSynthesis API 사용
+ * @param {string} text - 읽을 텍스트
+ * @param {string} lang - 언어 코드 ('en-US' 또는 'ko-KR')
+ */
+export function speak(text, lang = 'en-US') {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang;
+  utterance.rate = 0.85; // 학습용으로 약간 느리게
+  utterance.pitch = 1;
+  window.speechSynthesis.speak(utterance);
+}
