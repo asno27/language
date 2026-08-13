@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 언어 튜터 | AI Language Tutor</title>
+  <meta name="description" content="AI 기반 영어 학습 도우미 - 영작 교정, 번역, 사전, 발음 피드백">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">
+          <span class="title-icon">🎓</span>
+          <span class="title-text">AI Language Tutor</span>
+        </h1>
+        <p class="app-subtitle">Your personal English learning companion</p>
+      </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="nav-tabs" id="nav-tabs">
+      <button class="tab-btn active" data-tab="writing">
+        <span class="tab-icon">✍️</span>
+        <span class="tab-label">영작 교정</span>
+      </button>
+      <button class="tab-btn" data-tab="translation">
+        <span class="tab-icon">🌐</span>
+        <span class="tab-label">번역</span>
+      </button>
+      <button class="tab-btn" data-tab="dictionary">
+        <span class="tab-icon">📖</span>
+        <span class="tab-label">사전</span>
+      </button>
+      <button class="tab-btn" data-tab="pronunciation">
+        <span class="tab-icon">🎙️</span>
+        <span class="tab-label">발음</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Writing Correction Pane -->
+      <section class="tab-pane active" id="pane-writing">
+        <div class="glass-card input-card">
+          <div class="card-header">
+            <h2>✍️ 영작 교정</h2>
+            <p class="card-desc">영어 문장을 입력하면 자연스러운 원어민 표현으로 교정해 드려요</p>
+          </div>
+          <textarea id="writing-input" class="text-input" placeholder="교정받고 싶은 영어 문장을 입력하세요...&#10;&#10;예: I have went to school yesterday." rows="5"></textarea>
+          <div class="input-actions">
+            <span class="char-count" id="writing-char-count">0자</span>
+            <button class="submit-btn" id="writing-submit">
+              <span class="btn-text">교정하기</span>
+              <span class="btn-icon">→</span>
+            </button>
+          </div>
+        </div>
+        <div class="glass-card output-card" id="writing-output">
+          <div class="placeholder-message">
+            <span class="placeholder-icon">💡</span>
+            <p>교정 결과가 여기에 표시됩니다</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Translation Pane -->
+      <section class="tab-pane" id="pane-translation">
+        <div class="glass-card input-card">
+          <div class="card-header">
+            <h2>🌐 번역</h2>
+            <p class="card-desc">한국어 ↔ 영어 자연스러운 번역과 뉘앙스 설명을 제공해요</p>
+          </div>
+          <textarea id="translation-input" class="text-input" placeholder="번역할 문장을 입력하세요 (한국어 또는 영어)...&#10;&#10;예: 이 프로젝트는 정말 보람 있었어요." rows="5"></textarea>
+          <div class="input-actions">
+            <span class="char-count" id="translation-char-count">0자</span>
+            <button class="submit-btn" id="translation-submit">
+              <span class="btn-text">번역하기</span>
+              <span class="btn-icon">→</span>
+            </button>
+          </div>
+        </div>
+        <div class="glass-card output-card" id="translation-output">
+          <div class="placeholder-message">
+            <span class="placeholder-icon">🌍</span>
+            <p>번역 결과가 여기에 표시됩니다</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dictionary Pane -->
+      <section class="tab-pane" id="pane-dictionary">
+        <div class="glass-card input-card">
+          <div class="card-header">
+            <h2>📖 사전</h2>
+            <p class="card-desc">영어 단어의 뜻, 발음, 예문을 확인하세요</p>
+          </div>
+          <div class="search-input-wrapper">
+            <input type="text" id="dictionary-input" class="text-input search-input" placeholder="단어를 입력하세요... (예: serendipity)">
+            <button class="submit-btn" id="dictionary-submit">
+              <span class="btn-text">검색</span>
+              <span class="btn-icon">🔍</span>
+            </button>
+          </div>
+        </div>
+        <div class="glass-card output-card" id="dictionary-output">
+          <div class="placeholder-message">
+            <span class="placeholder-icon">📚</span>
+            <p>단어 검색 결과가 여기에 표시됩니다</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pronunciation Pane -->
+      <section class="tab-pane" id="pane-pronunciation">
+        <div class="glass-card input-card">
+          <div class="card-header">
+            <h2>🎙️ 발음 피드백</h2>
+            <p class="card-desc">목표 문장을 읽어보세요. AI가 발음을 분석해 드려요</p>
+          </div>
+          <input type="text" id="pronunciation-target" class="text-input" placeholder="목표 문장을 입력하세요... (예: The weather is beautiful today.)">
+          <div class="mic-section">
+            <button class="mic-btn" id="mic-btn" title="마이크를 눌러 말하세요">
+              <svg class="mic-icon" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+              <span class="mic-pulse"></span>
+            </button>
+            <p class="mic-status" id="mic-status">마이크 버튼을 눌러 시작하세요</p>
+          </div>
+          <div class="stt-result" id="stt-result" style="display:none;">
+            <span class="stt-label">인식된 문장:</span>
+            <p class="stt-text" id="stt-text"></p>
+          </div>
+        </div>
+        <div class="glass-card output-card" id="pronunciation-output">
+          <div class="placeholder-message">
+            <span class="placeholder-icon">🗣️</span>
+            <p>발음 피드백이 여기에 표시됩니다</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading" style="display:none;">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p class="loading-text">AI가 분석 중입니다...</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

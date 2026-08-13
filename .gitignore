@@ -1,0 +1,15 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node (if using dev server)
+node_modules/
+package-lock.json
+
+# Environment
+.env
+.env.local
