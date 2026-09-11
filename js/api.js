@@ -13,9 +13,35 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const YOUTUBE_API_URL = 'http://localhost:5000/api/youtube';
 
+let GROQ_MODEL = null;
+async function getGroqModel() {
+  if (GROQ_MODEL) return GROQ_MODEL;
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/models', {
+      headers: { 'Authorization': `Bearer ${getGroqApiKey()}` }
+    });
+    const data = await response.json();
+    const models = data.data.map(m => m.id);
+    
+    GROQ_MODEL = models.find(m => m.includes('llama-3.3-70b')) ||
+                 models.find(m => m.includes('llama-3.1-8b')) ||
+                 models.find(m => m.includes('llama-3.2')) ||
+                 models.find(m => m.includes('llama3-70b')) ||
+                 models.find(m => m.includes('mixtral')) ||
+                 models.find(m => m.includes('llama')) ||
+                 models[0];
+    console.log("자동 선택된 Groq 모델:", GROQ_MODEL);
+    return GROQ_MODEL;
+  } catch (e) {
+    console.error("모델 목록 가져오기 실패", e);
+    return 'llama3-8b-8192'; // Fallback
+  }
+}
+
 export async function callGroq(mode, data) {
   const systemPrompt = getSystemPrompt(mode);
   const userMessage = getUserPrompt(mode, data);
+  const modelToUse = await getGroqModel();
   
   const response = await fetch(GROQ_API_URL, {
     method: 'POST',
@@ -24,7 +50,7 @@ export async function callGroq(mode, data) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'llama-3.1-70b-versatile',
+      model: modelToUse,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage }
