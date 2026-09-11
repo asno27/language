@@ -1,7 +1,7 @@
 import { getSystemPrompt, getUserPrompt } from './prompts.js';
 
 // API 키는 localStorage에 저장됩니다. 첫 실행 시 자동으로 입력 프롬프트가 표시됩니다.
-function getGroqApiKey() {
+export function getGroqApiKey() {
   let key = localStorage.getItem('groq_api_key');
   if (!key) {
     key = prompt('Groq API 키를 입력해주세요.\n(https://console.groq.com 에서 무료 발급)');
@@ -11,6 +11,7 @@ function getGroqApiKey() {
 }
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
+const YOUTUBE_API_URL = 'http://localhost:5000/api/youtube';
 
 export async function callGroq(mode, data) {
   const systemPrompt = getSystemPrompt(mode);
@@ -70,4 +71,17 @@ export async function lookupDictionary(word) {
   } catch {
     return null;
   }
+}
+
+export async function fetchYoutubeTranscript(url, apiKey) {
+  const response = await fetch(YOUTUBE_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, api_key: apiKey })
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || `서버 오류: ${response.status}`);
+  }
+  return await response.json();
 }

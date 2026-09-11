@@ -1,4 +1,4 @@
-import { callGroq, lookupDictionary } from './api.js';
+import { callGroq, lookupDictionary, fetchYoutubeTranscript, getGroqApiKey } from './api.js';
 import { SpeechManager, speak } from './speech.js';
 import { saveWord, deleteWord, getAllWords, getWordsForReview, getMasteredCount, updateReview, isWordSaved, getTotalCount } from './vocabulary.js';
 
@@ -60,6 +60,11 @@ const dailySttText = $('#daily-stt-text');
 const dailyOutput = $('#daily-output');
 const dailyNewBtn = $('#daily-new-btn');
 const dailySpeech = new SpeechManager();
+
+// Youtube DOM
+const youtubeInput = $('#youtube-input');
+const youtubeSubmit = $('#youtube-submit');
+const youtubeOutput = $('#youtube-output');
 
 // Tab Navigation
 tabBtns.forEach(btn => {
@@ -423,6 +428,58 @@ dailyMicBtn.addEventListener('click', () => {
 });
 
 dailyNewBtn.addEventListener('click', generateDailySentence);
+
+// === YOUTUBE TRANSLATION ===
+
+async function handleYoutubeSubmit() {
+  const url = youtubeInput.value.trim();
+  if (!url) return;
+  showLoading();
+  youtubeSubmit.disabled = true;
+  youtubeOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⏳</span><p>서버에서 영상 스크립트를 추출 중입니다 (최대 1~2분 소요)...</p></div>`;
+  
+  try {
+    const apiKey = getGroqApiKey();
+    // 1. 서버에서 스크립트 가져오기
+    const ytData = await fetchYoutubeTranscript(url, apiKey);
+    const transcript = ytData.transcript;
+    const sourceMsg = ytData.source === 'cc' ? '공식 자막 추출' : '오디오 음성 인식 추출';
+    
+    youtubeOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">🔄</span><p>${sourceMsg} 완료!<br>AI 번역 중입니다...</p></div>`;
+    
+    // 2. 번역 AI (Groq)에 스크립트 전달하여 번역
+    // 스크립트가 길 수 있으므로 텍스트 길이에 따라 잘라야 할 수 있지만 현재는 그냥 전달 (max_tokens가 1024라 다 번역 안 될 수도 있음)
+    // 좀 더 나은 경험을 위해 "요약 및 주요 내용 번역" 프롬프트로 전송하는 것이 좋을 수 있습니다. 
+    // 여기서는 기존 translation을 재활용
+    const translationData = await callGroq('translation', { text: transcript.substring(0, 4000) });
+    
+    // 3. 결과 렌더링
+    let html = `<div class="result-section fade-in">
+      <div class="result-label note">ℹ️ 스크립트 출처: ${sourceMsg}</div>
+    </div>`;
+    
+    html += `<div class="result-section fade-in">
+      <div class="result-label translation">🌐 한국어 번역</div>
+      <div class="result-text highlight">${escapeHtml(translationData.translated)}</div>
+    </div>`;
+    
+    html += `<div class="result-section fade-in">
+      <div class="result-label recognized">🗣️ 원문 스크립트</div>
+      <div class="result-text" style="max-height: 200px; overflow-y: auto;">${escapeHtml(transcript)}</div>
+      <button class="audio-btn" style="margin-top: 10px;" onclick="speakText('${escapeHtml(transcript.substring(0, 1000)).replace(/'/g, "\\'")}')">🔊 원문 읽어주기</button>
+    </div>`;
+    
+    youtubeOutput.innerHTML = html;
+  } catch (e) {
+    showError(youtubeOutput, e.message);
+  } finally {
+    hideLoading();
+    youtubeSubmit.disabled = false;
+  }
+}
+
+youtubeSubmit.addEventListener('click', handleYoutubeSubmit);
+youtubeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleYoutubeSubmit(); });
 
 // Initialize vocab stats on load
 updateVocabStats();
