@@ -21,15 +21,22 @@ async function getGroqModel() {
       headers: { 'Authorization': `Bearer ${getGroqApiKey()}` }
     });
     const data = await response.json();
-    const models = data.data.map(m => m.id);
     
-    GROQ_MODEL = models.find(m => m.includes('llama-3.3-70b')) ||
-                 models.find(m => m.includes('llama-3.1-8b')) ||
-                 models.find(m => m.includes('llama-3.2')) ||
-                 models.find(m => m.includes('llama3-70b')) ||
-                 models.find(m => m.includes('mixtral')) ||
-                 models.find(m => m.includes('llama')) ||
-                 models[0];
+    // 텍스트 생성용 모델만 필터링 (가드레일, 비전 등 특수 목적 모델 제외)
+    const validModels = data.data
+      .map(m => m.id)
+      .filter(id => !id.includes('guard') && !id.includes('vision') && !id.includes('whisper'));
+    
+    // 우선순위에 따라 가장 좋은 모델 선택
+    GROQ_MODEL = validModels.find(m => m.includes('llama-3.3-70b')) ||
+                 validModels.find(m => m.includes('llama-3.1-70b')) ||
+                 validModels.find(m => m.includes('llama3-70b')) ||
+                 validModels.find(m => m.includes('llama-3.1-8b')) ||
+                 validModels.find(m => m.includes('llama3-8b')) ||
+                 validModels.find(m => m.includes('mixtral')) ||
+                 validModels.find(m => m.includes('gemma')) ||
+                 validModels[0];
+                 
     console.log("자동 선택된 Groq 모델:", GROQ_MODEL);
     return GROQ_MODEL;
   } catch (e) {
