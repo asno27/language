@@ -447,11 +447,24 @@ async function handleYoutubeSubmit() {
     
     youtubeOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">🔄</span><p>${sourceMsg} 완료!<br>AI 번역 중입니다...</p></div>`;
     
-    // 2. 번역 AI (Groq)에 스크립트 전달하여 번역
-    // 스크립트가 길 수 있으므로 텍스트 길이에 따라 잘라야 할 수 있지만 현재는 그냥 전달 (max_tokens가 1024라 다 번역 안 될 수도 있음)
-    // 좀 더 나은 경험을 위해 "요약 및 주요 내용 번역" 프롬프트로 전송하는 것이 좋을 수 있습니다. 
-    // 여기서는 기존 translation을 재활용
-    const translationData = await callGroq('translation', { text: transcript.substring(0, 4000) });
+    // 2. 스크립트 번역 (출력 제한을 피하기 위해 1000자씩 잘라서 번역)
+    youtubeOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">🔄</span><p>${sourceMsg} 완료!<br>AI 번역 중입니다 (길이에 따라 시간이 걸릴 수 있습니다)...</p></div>`;
+    
+    // 최대 3000자까지만 처리 (과도한 API 호출 방지)
+    const MAX_TEXT_LENGTH = 3000;
+    const textToTranslate = transcript.substring(0, MAX_TEXT_LENGTH);
+    const chunkSize = 1000;
+    let translatedText = "";
+    
+    for (let i = 0; i < textToTranslate.length; i += chunkSize) {
+      const chunk = textToTranslate.substring(i, i + chunkSize);
+      const translationData = await callGroq('translation', { text: chunk });
+      translatedText += translationData.translated + " ";
+    }
+    
+    if (transcript.length > MAX_TEXT_LENGTH) {
+      translatedText += "\n\n(텍스트가 너무 길어 일부만 번역되었습니다.)";
+    }
     
     // 3. 결과 렌더링
     let html = `<div class="result-section fade-in">
@@ -460,13 +473,13 @@ async function handleYoutubeSubmit() {
     
     html += `<div class="result-section fade-in">
       <div class="result-label translation">🌐 한국어 번역</div>
-      <div class="result-text highlight">${escapeHtml(translationData.translated)}</div>
+      <div class="result-text highlight">${escapeHtml(translatedText)}</div>
     </div>`;
     
     html += `<div class="result-section fade-in">
       <div class="result-label recognized">🗣️ 원문 스크립트</div>
       <div class="result-text" style="max-height: 200px; overflow-y: auto;">${escapeHtml(transcript)}</div>
-      <button class="audio-btn" style="margin-top: 10px;" onclick="speakText('${escapeHtml(transcript.substring(0, 1000)).replace(/'/g, "\\'")}')">🔊 원문 읽어주기</button>
+      <button class="audio-btn" style="margin-top: 10px;" onclick="speakText('${escapeHtml(transcript.substring(0, 1000)).replace(/'/g, "\\'")}')">🔊 원문 앞부분 듣기</button>
     </div>`;
     
     youtubeOutput.innerHTML = html;
