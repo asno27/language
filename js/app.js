@@ -490,6 +490,9 @@ async function handleYoutubeSubmit() {
       
       container.insertAdjacentHTML('beforeend', segmentHtml);
       textContentToDownload += `[${seg.time}]\n원문: ${seg.text}\n번역: ${translated}\n\n`;
+      
+      // Groq 무료 계정의 분당 토큰 제한(TPM) 초과를 방지하기 위해 청크 사이에 2초 대기
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
     
     document.getElementById('translating-indicator').style.display = 'none';

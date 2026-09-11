@@ -45,7 +45,7 @@ async function getGroqModel() {
   }
 }
 
-export async function callGroq(mode, data) {
+export async function callGroq(mode, data, retries = 3) {
   const systemPrompt = getSystemPrompt(mode);
   const userMessage = getUserPrompt(mode, data);
   const modelToUse = await getGroqModel();
@@ -68,6 +68,11 @@ export async function callGroq(mode, data) {
   });
   
   if (!response.ok) {
+    if (response.status === 429 && retries > 0) {
+      console.warn(`Rate limit exceeded. Retrying in 3 seconds... (${retries} retries left)`);
+      await new Promise(r => setTimeout(r, 3000));
+      return callGroq(mode, data, retries - 1);
+    }
     const error = await response.json().catch(() => ({}));
     throw new Error(error.error?.message || `API 오류: ${response.status}`);
   }
