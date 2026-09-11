@@ -39,13 +39,14 @@ async function getGroqModel() {
                  findModel('llama') ||
                  findModel('mixtral') ||
                  findModel('gemma') ||
-                 'llama3-8b-8192'; // 최종 대비책
+                 validModels[0] ||
+                 'llama-3.1-8b-instant'; // 현재 가장 안정적인 최신 폴백
                  
     console.log("자동 선택된 Groq 모델:", GROQ_MODEL);
     return GROQ_MODEL;
   } catch (e) {
     console.error("모델 목록 가져오기 실패", e);
-    return 'llama3-8b-8192'; // Fallback
+    return 'llama-3.1-8b-instant'; // Fallback
   }
 }
 
