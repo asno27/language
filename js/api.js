@@ -25,17 +25,21 @@ async function getGroqModel() {
     // 텍스트 생성용 모델만 필터링 (가드레일, 비전 등 특수 목적 모델 제외)
     const validModels = data.data
       .map(m => m.id)
-      .filter(id => !id.includes('guard') && !id.includes('vision') && !id.includes('whisper'));
+      .filter(id => !id.toLowerCase().includes('guard') && !id.toLowerCase().includes('vision') && !id.toLowerCase().includes('whisper'));
     
-    // 우선순위에 따라 가장 좋은 모델 선택
-    GROQ_MODEL = validModels.find(m => m.includes('llama-3.3-70b')) ||
-                 validModels.find(m => m.includes('llama-3.1-70b')) ||
-                 validModels.find(m => m.includes('llama3-70b')) ||
-                 validModels.find(m => m.includes('llama-3.1-8b')) ||
-                 validModels.find(m => m.includes('llama3-8b')) ||
-                 validModels.find(m => m.includes('mixtral')) ||
-                 validModels.find(m => m.includes('gemma')) ||
-                 validModels[0];
+    // 우선순위에 따라 가장 좋은 모델 선택 (대소문자 구분 없이)
+    const findModel = (keyword) => validModels.find(m => m.toLowerCase().includes(keyword.toLowerCase()));
+    
+    GROQ_MODEL = findModel('llama-3.3-70b') ||
+                 findModel('llama-3.1-70b') ||
+                 findModel('llama3-70b') ||
+                 findModel('llama-3.1-8b') ||
+                 findModel('llama3-8b') ||
+                 findModel('llama-3') ||
+                 findModel('llama') ||
+                 findModel('mixtral') ||
+                 findModel('gemma') ||
+                 'llama3-8b-8192'; // 최종 대비책
                  
     console.log("자동 선택된 Groq 모델:", GROQ_MODEL);
     return GROQ_MODEL;
