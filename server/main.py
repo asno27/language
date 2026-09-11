@@ -30,6 +30,32 @@ def get_video_id(url: str) -> str:
         return match.group(1)
     return None
 
+def format_time(seconds):
+    m, s = divmod(int(seconds), 60)
+    h, m = divmod(m, 60)
+    return f"{h:02d}:{m:02d}:{s:02d}" if h > 0 else f"{m:02d}:{s:02d}"
+
+def chunk_transcript(items, is_whisper=False):
+    chunks = []
+    current_text = ""
+    current_start = 0
+    
+    for item in items:
+        if not current_text:
+            current_start = item['start']
+            
+        current_text += item['text'] + " "
+        
+        # 600자 정도마다 하나의 덩어리(청크)로 분리
+        if len(current_text) > 600:
+            chunks.append({"time": format_time(current_start), "text": current_text.strip()})
+            current_text = ""
+            
+    if current_text:
+        chunks.append({"time": format_time(current_start), "text": current_text.strip()})
+        
+    return chunks
+
 @app.post("/api/youtube")
 async def process_youtube(req: YoutubeRequest):
     video_id = get_video_id(req.url)
@@ -38,13 +64,10 @@ async def process_youtube(req: YoutubeRequest):
     
     # 1. 먼저 공식 자막(CC) 추출 시도
     try:
-        # 영어 자막 시도
-        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'en-US', 'en-GB'])
-        formatter = TextFormatter()
-        text = formatter.format_transcript(transcript)
-        # 줄바꿈을 공백으로 변경하여 긴 텍스트로 합침
-        text = text.replace('\n', ' ')
-        return {"transcript": text, "source": "cc"}
+        yt_api = YouTubeTranscriptApi()
+        transcript = yt_api.fetch(video_id, languages=['en', 'en-US', 'en-GB'])
+        chunks = chunk_transcript(transcript)
+        return {"segments": chunks, "source": "cc"}
     except Exception as e:
         print("공식 자막 가져오기 실패, 오디오 다운로드 및 Whisper 변환으로 넘어갑니다:", str(e))
         pass
@@ -54,7 +77,6 @@ async def process_youtube(req: YoutubeRequest):
     try:
         client = Groq(api_key=req.api_key)
         
-        # yt-dlp를 사용해 오디오 포맷으로 다운로드 (ffmpeg 불필요하도록 m4a 등 원본 유지)
         ydl_opts = {
             'format': 'm4a/bestaudio/best',
             'outtmpl': f'temp_{video_id}.%(ext)s',
@@ -64,30 +86,29 @@ async def process_youtube(req: YoutubeRequest):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([req.url])
             
-        # 다운로드된 파일 찾기
         files = glob.glob(f"temp_{video_id}.*")
         if not files:
             raise Exception("오디오 다운로드에 실패했습니다.")
         file_path = files[0]
         
-        # 파일 용량 체크 (Groq Whisper 25MB 제한)
         if os.path.getsize(file_path) > 25 * 1024 * 1024:
             raise Exception("오디오 파일이 너무 큽니다 (25MB 제한). 더 짧은 영상을 사용해주세요.")
             
-        # Groq Whisper 호출
         with open(file_path, "rb") as file:
             transcription = client.audio.transcriptions.create(
               file=(file_path, file.read()),
               model="whisper-large-v3",
+              response_format="verbose_json"
             )
             
-        # 작업 완료 후 파일 삭제
         os.remove(file_path)
         
-        return {"transcript": transcription.text, "source": "whisper"}
+        # Whisper response has 'segments'
+        chunks = chunk_transcript(transcription.segments, is_whisper=True)
+        return {"segments": chunks, "source": "whisper"}
         
     except Exception as e:
-        # 에러 발생 시 임시 파일 정리
         if file_path and os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(status_code=500, detail=f"오류가 발생했습니다: {str(e)}")
+

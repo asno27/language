@@ -429,6 +429,17 @@ dailyMicBtn.addEventListener('click', () => {
 
 dailyNewBtn.addEventListener('click', generateDailySentence);
 
+// 다운로드 헬퍼 함수
+function downloadTextFile(filename, text) {
+  const element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
 // === YOUTUBE TRANSLATION ===
 
 async function handleYoutubeSubmit() {
@@ -440,49 +451,56 @@ async function handleYoutubeSubmit() {
   
   try {
     const apiKey = getGroqApiKey();
-    // 1. 서버에서 스크립트 가져오기
+    // 1. 서버에서 스크립트 덩어리(segments) 가져오기
     const ytData = await fetchYoutubeTranscript(url, apiKey);
-    const transcript = ytData.transcript;
+    const segments = ytData.segments;
     const sourceMsg = ytData.source === 'cc' ? '공식 자막 추출' : '오디오 음성 인식 추출';
     
-    youtubeOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">🔄</span><p>${sourceMsg} 완료!<br>AI 번역 중입니다...</p></div>`;
+    // 2. 스크립트 번역 (각 덩어리마다 번역하여 점진적 렌더링)
+    youtubeOutput.innerHTML = `
+      <div class="result-section fade-in">
+        <div class="result-label note">ℹ️ 스크립트 출처: ${sourceMsg}</div>
+        <div style="text-align: right; margin-top: -30px;">
+          <button class="submit-btn" id="download-txt" style="padding: 6px 12px; font-size: 0.85rem;" disabled>📥 번역 중...</button>
+        </div>
+      </div>
+      <div id="segments-container"></div>
+      <div id="translating-indicator" class="placeholder-message" style="margin-top: 1rem;">
+        <span class="placeholder-icon">🔄</span><p>AI가 순차적으로 번역 중입니다...</p>
+      </div>
+    `;
     
-    // 2. 스크립트 번역 (출력 제한을 피하기 위해 1000자씩 잘라서 번역)
-    youtubeOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">🔄</span><p>${sourceMsg} 완료!<br>AI 번역 중입니다 (길이에 따라 시간이 걸릴 수 있습니다)...</p></div>`;
+    const container = document.getElementById('segments-container');
+    let textContentToDownload = "=== 유튜브 영상 번역 ===\nURL: " + url + "\n\n";
     
-    // 최대 3000자까지만 처리 (과도한 API 호출 방지)
-    const MAX_TEXT_LENGTH = 3000;
-    const textToTranslate = transcript.substring(0, MAX_TEXT_LENGTH);
-    const chunkSize = 1000;
-    let translatedText = "";
-    
-    for (let i = 0; i < textToTranslate.length; i += chunkSize) {
-      const chunk = textToTranslate.substring(i, i + chunkSize);
-      const translationData = await callGroq('translation', { text: chunk });
-      translatedText += translationData.translated + " ";
+    for (const seg of segments) {
+      const translationData = await callGroq('translation', { text: seg.text });
+      const translated = translationData.translated;
+      
+      const segmentHtml = `
+        <div class="transcript-segment fade-in" style="margin-bottom: 1.5rem; padding: 1.2rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+          <div class="timecode" style="color: var(--accent-1); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>⏱️ [${seg.time}]</span>
+            <button class="audio-btn" style="padding: 4px 8px; font-size: 0.75rem;" onclick="speakText('${escapeHtml(seg.text).replace(/'/g, "\\'")}')">🔊 듣기</button>
+          </div>
+          <div class="eng-text" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 0.8rem; line-height: 1.5;">${escapeHtml(seg.text)}</div>
+          <div class="kor-text" style="font-size: 1.05rem; color: #fff; line-height: 1.6;">${escapeHtml(translated)}</div>
+        </div>
+      `;
+      
+      container.insertAdjacentHTML('beforeend', segmentHtml);
+      textContentToDownload += `[${seg.time}]\n원문: ${seg.text}\n번역: ${translated}\n\n`;
     }
     
-    if (transcript.length > MAX_TEXT_LENGTH) {
-      translatedText += "\n\n(텍스트가 너무 길어 일부만 번역되었습니다.)";
-    }
+    document.getElementById('translating-indicator').style.display = 'none';
     
-    // 3. 결과 렌더링
-    let html = `<div class="result-section fade-in">
-      <div class="result-label note">ℹ️ 스크립트 출처: ${sourceMsg}</div>
-    </div>`;
+    const downloadBtn = document.getElementById('download-txt');
+    downloadBtn.disabled = false;
+    downloadBtn.textContent = '📥 텍스트 파일로 다운로드';
+    downloadBtn.addEventListener('click', () => {
+      downloadTextFile('youtube_translation.txt', textContentToDownload);
+    });
     
-    html += `<div class="result-section fade-in">
-      <div class="result-label translation">🌐 한국어 번역</div>
-      <div class="result-text highlight">${escapeHtml(translatedText)}</div>
-    </div>`;
-    
-    html += `<div class="result-section fade-in">
-      <div class="result-label recognized">🗣️ 원문 스크립트</div>
-      <div class="result-text" style="max-height: 200px; overflow-y: auto;">${escapeHtml(transcript)}</div>
-      <button class="audio-btn" style="margin-top: 10px;" onclick="speakText('${escapeHtml(transcript.substring(0, 1000)).replace(/'/g, "\\'")}')">🔊 원문 앞부분 듣기</button>
-    </div>`;
-    
-    youtubeOutput.innerHTML = html;
   } catch (e) {
     showError(youtubeOutput, e.message);
   } finally {
