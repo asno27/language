@@ -458,10 +458,10 @@ async function handleYoutubeSubmit() {
     
     // 2. 스크립트 번역 (각 덩어리마다 번역하여 점진적 렌더링)
     youtubeOutput.innerHTML = `
-      <div class="result-section fade-in">
-        <div class="result-label note">ℹ️ 스크립트 출처: ${sourceMsg}</div>
-        <div style="text-align: right; margin-top: -30px;">
-          <button class="submit-btn" id="download-txt" style="padding: 6px 12px; font-size: 0.85rem;" disabled>📥 번역 중...</button>
+      <div class="result-section fade-in" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: transparent; padding: 0; border: none;">
+        <div class="result-label note" style="margin-bottom: 0;">ℹ️ 스크립트 출처: ${sourceMsg}</div>
+        <div>
+          <button class="submit-btn" id="download-txt" style="padding: 8px 16px; font-size: 0.9rem;" disabled>📥 번역 중...</button>
         </div>
       </div>
       <div id="segments-container"></div>
