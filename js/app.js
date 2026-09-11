@@ -351,11 +351,11 @@ async function generateDailySentence() {
 
 function displayDailySentence(data) {
   currentDailySentence = data;
-  dailySentence.innerHTML = \`
-    <div class="daily-sentence-text">\${escapeHtml(data.sentence)}</div>
-    <div class="daily-sentence-translation">📝 \${escapeHtml(data.translation)}</div>
-    \${data.context ? \`<div class="daily-sentence-context">💡 \${escapeHtml(data.context)}</div>\` : ''}
-  \`;
+  dailySentence.innerHTML = `
+    <div class="daily-sentence-text">${escapeHtml(data.sentence)}</div>
+    <div class="daily-sentence-translation">📝 ${escapeHtml(data.translation)}</div>
+    ${data.context ? `<div class="daily-sentence-context">💡 ${escapeHtml(data.context)}</div>` : ''}
+  `;
   dailyPractice.style.display = 'block';
 }
 
