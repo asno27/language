@@ -606,10 +606,7 @@ async function handleYoutubeSubmit() {
 youtubeSubmit.addEventListener('click', handleYoutubeSubmit);
 youtubeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleYoutubeSubmit(); });
 
-  // Initialize Tabs
-  if (navTabs) {
-    // Tab switching logic ...
-  }
+
   
   // Vocabulary Interests Logic
   const interestsInput = document.getElementById('vocab-interests');
