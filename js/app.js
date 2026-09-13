@@ -9,6 +9,82 @@ const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
 // DOM elements
+window.handleNuanceSubmit = async function() {
+  const nuanceInput = document.getElementById('nuance-input');
+  const nuanceSubmit = document.getElementById('nuance-submit');
+  const nuanceOutput = document.getElementById('nuance-output');
+  
+  if (!nuanceInput || !nuanceSubmit || !nuanceOutput) {
+    console.error('Nuance DOM elements missing!');
+    return;
+  }
+  
+  const query = nuanceInput.value.trim();
+  if (!query) return;
+  
+  nuanceSubmit.disabled = true;
+  const originalBtnText = nuanceSubmit.innerHTML;
+  nuanceSubmit.innerHTML = `<span class="btn-text">분석 중...</span>`;
+  nuanceOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⏳</span><p>AI가 뉘앙스를 분석하고 있습니다...</p></div>`;
+  
+  try {
+    // Dynamic import to avoid module issues just in case
+    const { callGemini } = await import('./api.js');
+    const result = await callGemini('nuance', { query });
+    
+    // Helper function for HTML escaping inside this scope
+    const esc = (str) => {
+      if (!str) return '';
+      return String(str).replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    };
+
+    let html = `
+      <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(var(--accent-1-rgb), 0.1); border-radius: 10px; border-left: 4px solid var(--accent-1);">
+        <strong style="color: var(--accent-1);">💡 핵심 차이:</strong><br>
+        <span style="color: var(--text-primary); line-height: 1.5;">${esc(result.explanation)}</span>
+      </div>
+    `;
+    
+    if (result.words && Array.isArray(result.words)) {
+      result.words.forEach(w => {
+        html += `
+          <div class="nuance-item">
+            <h3 style="color: var(--accent-2); margin-bottom: 0.5rem; font-size: 1.1rem;">${esc(w.word)}</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 0.8rem;">${esc(w.nuance)}</p>
+            <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 8px;">
+        `;
+        if (w.examples && Array.isArray(w.examples)) {
+          w.examples.forEach(ex => {
+            html += `
+              <div style="margin-bottom: 0.5rem; font-size: 0.9rem;">
+                <div style="color: #fff;">• ${esc(ex.en)} <button class="audio-btn" style="padding:2px 6px;font-size:0.7rem;background:transparent;" onclick="speakText('${esc(ex.en).replace(/'/g, "\\'")}')">🔊</button></div>
+                <div style="color: var(--text-muted); margin-left: 10px;">→ ${esc(ex.ko)}</div>
+              </div>
+            `;
+          });
+        }
+        html += `</div></div>`;
+      });
+    }
+    nuanceOutput.innerHTML = html;
+  } catch (error) {
+    console.error(error);
+    const esc = (str) => String(str).replace(/[&<>'"]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[tag] || tag));
+    nuanceOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⚠️</span><p>오류가 발생했습니다: ${esc(error.message)}</p></div>`;
+  } finally {
+    nuanceSubmit.disabled = false;
+    nuanceSubmit.innerHTML = originalBtnText;
+  }
+};
+
 const tabBtns = $$('.tab-btn');
 const tabPanes = $$('.tab-pane');
 const writingInput = $('#writing-input');
@@ -674,58 +750,8 @@ if (nuanceFab) {
     if (e.target === nuanceOverlay) nuanceOverlay.style.display = 'none';
   });
   
-  async function handleNuanceSubmit() {
-    const query = nuanceInput.value.trim();
-    if (!query) return;
-    
-    nuanceSubmit.disabled = true;
-    const originalBtnText = nuanceSubmit.innerHTML;
-    nuanceSubmit.innerHTML = `<span class="btn-text">분석 중...</span>`;
-    nuanceOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⏳</span><p>AI가 뉘앙스를 분석하고 있습니다...</p></div>`;
-    
-    try {
-      const result = await callGemini('nuance', { query });
-      let html = `
-        <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(var(--accent-1-rgb), 0.1); border-radius: 10px; border-left: 4px solid var(--accent-1);">
-          <strong style="color: var(--accent-1);">💡 핵심 차이:</strong><br>
-          <span style="color: var(--text-primary); line-height: 1.5;">${escapeHtml(result.explanation)}</span>
-        </div>
-      `;
-      
-      if (result.words && Array.isArray(result.words)) {
-        result.words.forEach(w => {
-          html += `
-            <div class="nuance-item">
-              <h3 style="color: var(--accent-2); margin-bottom: 0.5rem; font-size: 1.1rem;">${escapeHtml(w.word)}</h3>
-              <p style="color: var(--text-secondary); margin-bottom: 0.8rem;">${escapeHtml(w.nuance)}</p>
-              <div style="background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: 8px;">
-          `;
-          if (w.examples && Array.isArray(w.examples)) {
-            w.examples.forEach(ex => {
-              html += `
-                <div style="margin-bottom: 0.5rem; font-size: 0.9rem;">
-                  <div style="color: #fff;">• ${escapeHtml(ex.en)} <button class="audio-btn" style="padding:2px 6px;font-size:0.7rem;background:transparent;" onclick="speakText('${escapeHtml(ex.en).replace(/'/g, "\\'")}')">🔊</button></div>
-                  <div style="color: var(--text-muted); margin-left: 10px;">→ ${escapeHtml(ex.ko)}</div>
-                </div>
-              `;
-            });
-          }
-          html += `</div></div>`;
-        });
-      }
-      nuanceOutput.innerHTML = html;
-    } catch (error) {
-      nuanceOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⚠️</span><p>오류가 발생했습니다: ${escapeHtml(error.message)}</p></div>`;
-    } finally {
-      nuanceSubmit.disabled = false;
-      nuanceSubmit.innerHTML = originalBtnText;
-    }
-  }
-  window.handleNuanceSubmit = handleNuanceSubmit;
-  
-  nuanceSubmit.addEventListener('click', handleNuanceSubmit);
   nuanceInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleNuanceSubmit();
+    if (e.key === 'Enter' && window.handleNuanceSubmit) window.handleNuanceSubmit();
   });
 }
 
