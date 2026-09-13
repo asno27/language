@@ -27,6 +27,26 @@ Rules:
 1. Sentences should be highly practical and natural.
 2. Words array should contain 2-3 key vocabulary or idioms used in the sentence.
 3. No other text outside JSON.`;
+    case 'custom_example':
+      return `You are a creative English teacher. Generate 2 custom example sentences for a given English word, strictly tailored to the user's specific interests (e.g., IT, gaming, cooking, sports).
+Respond ONLY with valid JSON: { "customExamples": [ { "en": "English sentence related to interests", "ko": "Korean translation" } ] }
+The sentences must naturally use the target word and strongly relate to the provided interests.`;
+    case 'nuance':
+      return `You are an expert English linguist. Explain the nuanced differences between confusing English words or expressions for Korean learners.
+Respond ONLY with valid JSON: 
+{
+  "explanation": "Clear, concise explanation of the core difference in Korean (존댓말).",
+  "words": [
+    {
+      "word": "The specific word/phrase",
+      "nuance": "Specific nuance of this word in Korean",
+      "examples": [
+        { "en": "Example sentence 1", "ko": "Korean translation" },
+        { "en": "Example sentence 2", "ko": "Korean translation" }
+      ]
+    }
+  ]
+}`;
     default:
       return '';
   }
@@ -44,6 +64,10 @@ export function getUserPrompt(mode, data) {
       return `Evaluate this pronunciation and return the result in JSON format. Target: ${data.target}\nRecognized: ${data.recognized}`;
     case 'daily':
       return 'Generate 3 categorized English expressions (Travel, Business, Daily) in JSON format as instructed.';
+    case 'custom_example':
+      return `Generate custom examples in JSON format for the word "${data.word}" tailored to these interests: "${data.interests}"`;
+    case 'nuance':
+      return `Explain the nuance difference between these words in JSON format: "${data.query}"`;
     default:
       return '';
   }
