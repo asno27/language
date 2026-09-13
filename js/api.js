@@ -1,121 +1,77 @@
 import { getSystemPrompt, getUserPrompt } from './prompts.js';
 
-// API 키는 localStorage에 저장됩니다. 첫 실행 시 자동으로 입력 프롬프트가 표시됩니다.
-export function getGroqApiKey() {
-  let key = localStorage.getItem('groq_api_key');
+// API 키는 localStorage에 저장됩니다. (소스코드에 직접 입력하면 보안 위험으로 GitHub에서 차단됩니다)
+export function getGeminiApiKey() {
+  let key = localStorage.getItem('gemini_api_key');
   if (!key) {
-    key = prompt('Groq API 키를 입력해주세요.\n(https://console.groq.com 에서 무료 발급)');
-    if (key) localStorage.setItem('groq_api_key', key);
+    key = prompt('Google Gemini API 키를 입력해주세요.\n(https://aistudio.google.com/apikey 에서 발급)');
+    if (key) localStorage.setItem('gemini_api_key', key);
   }
   return key;
 }
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
-const YOUTUBE_API_URL = 'http://localhost:5000/api/youtube';
+const YOUTUBE_API_URL = window.location.hostname ? `http://${window.location.hostname}:8080/api/youtube` : 'http://localhost:8080/api/youtube';
 
-// 현재 Groq에서 텍스트 생성용으로 사용 가능한 모델 목록 (우선순위 순)
-// 2026-09 Groq 공식 문서 기준 확인 완료
-const GROQ_TEXT_MODELS = [
-  'llama-3.3-70b-versatile',
-  'llama-3.1-8b-instant',
-  'llama3-groq-70b-8192-tool-use-preview',
-  'qwen/qwen3.6-27b',
-  'qwen/qwen3.8-27b',
-  'gemma2-9b-it',
-  'mixtral-8x7b-32768',
-];
+// Gemini 3.6 Flash 모델 사용 (응답 속도와 품질이 매우 우수)
+const GEMINI_MODEL = 'gemini-3.6-flash';
 
-let GROQ_MODEL = null;
-async function getGroqModel() {
-  if (GROQ_MODEL) return GROQ_MODEL;
-  
-  // 모델 목록을 하나씩 시도해서 실제 사용 가능한 첫 번째 모델을 선택
-  for (const model of GROQ_TEXT_MODELS) {
-    try {
-      const res = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${getGroqApiKey()}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [{ role: 'user', content: 'Hi' }],
-          max_tokens: 1
-        })
-      });
-      if (res.ok) {
-        GROQ_MODEL = model;
-        console.log("✅ 사용 가능한 Groq 모델 확인:", model);
-        return GROQ_MODEL;
-      }
-      console.warn(`❌ 모델 ${model} 사용 불가, 다음 모델 시도...`);
-    } catch (e) {
-      console.warn(`❌ 모델 ${model} 연결 실패:`, e.message);
-    }
-  }
-  
-  // 모든 모델이 실패하면 에러
-  throw new Error('사용 가능한 Groq AI 모델을 찾을 수 없습니다. API 키를 확인해주세요.');
-}
-
-export async function callGroq(mode, data, retries = 3) {
+export async function callGemini(mode, data, retries = 3) {
   const systemPrompt = getSystemPrompt(mode);
   const userMessage = getUserPrompt(mode, data);
-  const modelToUse = await getGroqModel();
+  const apiKey = getGeminiApiKey();
   
-  const response = await fetch(GROQ_API_URL, {
+  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+  const payload = {
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: userMessage }]
+      }
+    ],
+    systemInstruction: {
+      role: "system",
+      parts: [{ text: systemPrompt }]
+    },
+    generationConfig: {
+      temperature: 0.3,
+      responseMimeType: "application/json"
+    }
+  };
+  
+  const response = await fetch(GEMINI_API_URL, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${getGroqApiKey()}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      model: modelToUse,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage }
-      ],
-      temperature: 0.3,
-      max_tokens: 800
-    })
+    body: JSON.stringify(payload)
   });
   
   if (!response.ok) {
     if (response.status === 429 && retries > 0) {
       console.warn(`Rate limit exceeded. Retrying in 3 seconds... (${retries} retries left)`);
       await new Promise(r => setTimeout(r, 3000));
-      return callGroq(mode, data, retries - 1);
+      return callGemini(mode, data, retries - 1);
     }
     const error = await response.json().catch(() => ({}));
     throw new Error(error.error?.message || `API 오류: ${response.status}`);
   }
   
   const result = await response.json();
-  const content = result.choices[0].message.content;
+  const rawContent = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  
+  // JSON 모드를 사용하더라도 가끔 마크다운 코드 블록이 포함될 수 있으므로 정제
+  let cleanContent = rawContent.trim();
+  const jsonMatch = cleanContent.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (jsonMatch) {
+    cleanContent = jsonMatch[1].trim();
+  }
   
   try {
-    return JSON.parse(content);
+    return JSON.parse(cleanContent);
   } catch (e1) {
-    try {
-      // 1. 마크다운 블록 추출 시도
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[1].trim());
-      }
-      
-      // 2. 강제로 처음 '{' 와 마지막 '}' 사이의 문자열만 추출
-      const firstBrace = content.indexOf('{');
-      const lastBrace = content.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        const pureJson = content.substring(firstBrace, lastBrace + 1);
-        return JSON.parse(pureJson);
-      }
-      
-      throw e1;
-    } catch (e2) {
-      throw new Error(`AI 데이터 파싱 실패 (${e2.message}). 원본: ${content.substring(0, 50)}...`);
-    }
+    throw new Error(`AI 데이터 파싱 실패 (${e1.message}). 원본: ${rawContent.substring(0, 70)}...`);
   }
 }
 
