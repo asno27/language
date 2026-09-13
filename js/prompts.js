@@ -43,7 +43,7 @@ export function getUserPrompt(mode, data) {
     case 'pronunciation':
       return `목표 문장: ${data.target}\n인식된 문장: ${data.recognized}`;
     case 'daily':
-      return data.topic ? `Topic: ${data.topic}. Generate a practice sentence.` : 'Generate a random English practice sentence for a Korean learner.';
+      return 'Generate 3 categorized English expressions (Travel, Business, Daily) in JSON format as instructed.';
     default:
       return '';
   }
