@@ -77,8 +77,7 @@ export async function callGroq(mode, data, retries = 3) {
         { role: 'user', content: userMessage }
       ],
       temperature: 0.3,
-      max_tokens: 800,
-      response_format: { type: 'json_object' }
+      max_tokens: 800
     })
   });
   
