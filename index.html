@@ -169,6 +169,10 @@
             <h2>📓 나만의 단어장</h2>
             <p class="card-desc">저장한 단어를 플래시카드로 복습하세요</p>
           </div>
+          <div class="vocab-settings" style="margin-bottom: 1.5rem;">
+            <label for="vocab-interests" style="display:block; font-size: 0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.5rem;">🎯 내 관심사 (예문 맞춤 생성)</label>
+            <input type="text" id="vocab-interests" class="text-input" placeholder="예: IT, 요리, 게임, 비즈니스 등...">
+          </div>
           <div class="vocab-stats">
             <div class="stat-item"><span class="stat-number" id="vocab-total">0</span><span class="stat-label">저장된 단어</span></div>
             <div class="stat-item"><span class="stat-number" id="vocab-review-count">0</span><span class="stat-label">복습할 단어</span></div>
@@ -276,6 +280,30 @@
         </div>
       </section>
 
+      <!-- Nuance Chatbot Floating Button -->
+      <button class="nuance-fab" id="nuance-fab" title="뉘앙스 감별기">💡 뉘앙스 질문</button>
+
+      <!-- Nuance Chatbot Modal -->
+      <div class="nuance-overlay" id="nuance-overlay" style="display:none;">
+        <div class="nuance-modal glass-card">
+          <div class="card-header" style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h2 style="font-size:1.2rem; margin:0;">💡 뉘앙스 감별기</h2>
+              <p style="font-size:0.8rem; margin:0; color:var(--text-muted);">헷갈리는 단어들의 미묘한 차이를 알려드려요</p>
+            </div>
+            <button id="nuance-close" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.2rem;">✕</button>
+          </div>
+          <div class="search-input-wrapper">
+            <input type="text" id="nuance-input" class="text-input search-input" placeholder="예: see vs look vs watch">
+            <button class="submit-btn" id="nuance-submit">
+              <span class="btn-text">질문</span>
+            </button>
+          </div>
+          <div class="nuance-output" id="nuance-output" style="margin-top:1rem; max-height:400px; overflow-y:auto; padding-right:5px;">
+            <div class="placeholder-message"><span class="placeholder-icon">🤔</span><p>어떤 단어의 뉘앙스가 궁금하신가요?</p></div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Loading Overlay -->
