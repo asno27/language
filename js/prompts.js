@@ -35,13 +35,13 @@ Rules:
 export function getUserPrompt(mode, data) {
   switch (mode) {
     case 'writing':
-      return data.text;
+      return `Please process this text and return the result in JSON format: ${data.text}`;
     case 'translation':
-      return data.text;
+      return `Translate the following text and return the result in JSON format: ${data.text}`;
     case 'dictionary':
-      return data.word;
+      return `Look up the following word and return the result in JSON format: ${data.word}`;
     case 'pronunciation':
-      return `목표 문장: ${data.target}\n인식된 문장: ${data.recognized}`;
+      return `Evaluate this pronunciation and return the result in JSON format. Target: ${data.target}\nRecognized: ${data.recognized}`;
     case 'daily':
       return 'Generate 3 categorized English expressions (Travel, Business, Daily) in JSON format as instructed.';
     default:
