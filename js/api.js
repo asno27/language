@@ -96,10 +96,26 @@ export async function callGroq(mode, data, retries = 3) {
   
   try {
     return JSON.parse(content);
-  } catch {
-    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (jsonMatch) return JSON.parse(jsonMatch[1].trim());
-    throw new Error('AI 응답을 파싱할 수 없습니다');
+  } catch (e1) {
+    try {
+      // 1. 마크다운 블록 추출 시도
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[1].trim());
+      }
+      
+      // 2. 강제로 처음 '{' 와 마지막 '}' 사이의 문자열만 추출
+      const firstBrace = content.indexOf('{');
+      const lastBrace = content.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        const pureJson = content.substring(firstBrace, lastBrace + 1);
+        return JSON.parse(pureJson);
+      }
+      
+      throw e1;
+    } catch (e2) {
+      throw new Error(`AI 데이터 파싱 실패 (${e2.message}). 원본: ${content.substring(0, 50)}...`);
+    }
   }
 }
 
