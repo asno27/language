@@ -342,7 +342,7 @@ async function loadDailySentence() {
 }
 
 async function generateDailySentence() {
-  dailySentence.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⏳</span><p>오늘의 문장을 생성 중...</p></div>`;
+  dailySentence.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⏳</span><p>오늘의 추천 영어 표현들을 생성 중입니다...</p></div>`;
   dailyPractice.style.display = 'none';
   try {
     const result = await callGroq('daily', {});
@@ -350,19 +350,70 @@ async function generateDailySentence() {
     localStorage.setItem('daily_sentence', JSON.stringify(data));
     displayDailySentence(data);
   } catch (e) {
-    dailySentence.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⚠️</span><p>문장 생성에 실패했습니다: ${escapeHtml(e.message)}</p></div>`;
+    dailySentence.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⚠️</span><p>생성에 실패했습니다: ${escapeHtml(e.message)}</p></div>`;
   }
 }
 
 function displayDailySentence(data) {
   currentDailySentence = data;
-  dailySentence.innerHTML = `
-    <div class="daily-sentence-text">${escapeHtml(data.sentence)}</div>
-    <div class="daily-sentence-translation">📝 ${escapeHtml(data.translation)}</div>
-    ${data.context ? `<div class="daily-sentence-context">💡 ${escapeHtml(data.context)}</div>` : ''}
-  `;
+  let html = '';
+  
+  if (data.themes && Array.isArray(data.themes)) {
+    data.themes.forEach((theme, index) => {
+      let wordsHtml = '';
+      if (theme.words && theme.words.length > 0) {
+        wordsHtml = '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">';
+        wordsHtml += '<strong style="color:var(--accent-1); font-size:0.85rem;">📚 오늘의 단어:</strong>';
+        theme.words.forEach(w => {
+          wordsHtml += `<div style="font-size:0.9rem; margin-top:4px;"><span style="color:#e0e0e0;">${escapeHtml(w.word)}</span> - <span style="color:var(--text-muted);">${escapeHtml(w.meaning)}</span></div>`;
+        });
+        wordsHtml += '</div>';
+      }
+      
+      html += `
+        <div class="daily-theme-card fade-in" style="margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px;">
+            <span style="background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; font-size: 0.9rem;">
+              🏷️ ${escapeHtml(theme.name)}
+            </span>
+            <button class="audio-btn" style="padding: 4px 10px; font-size: 0.8rem;" onclick="speakText('${escapeHtml(theme.sentence).replace(/'/g, "\\'")}')">🔊 듣기</button>
+          </div>
+          <div class="daily-sentence-text" style="font-size: 1.1rem; margin-bottom: 5px; color: #fff;">${escapeHtml(theme.sentence)}</div>
+          <div class="daily-sentence-translation" style="color: var(--text-muted); font-size: 0.95rem;">🇰🇷 ${escapeHtml(theme.translation)}</div>
+          ${wordsHtml}
+          <div style="margin-top: 10px; text-align: right;">
+            <button class="audio-btn" style="background: rgba(255,255,255,0.1); padding: 5px 12px; font-size: 0.8rem;" onclick="setShadowingTarget('${escapeHtml(theme.sentence).replace(/'/g, "\\'")}')">🎙️ 이 문장으로 쉐도잉 연습</button>
+          </div>
+        </div>
+      `;
+    });
+  } else {
+    // Fallback for old saved data structure
+    html = `
+      <div class="daily-sentence-text">${escapeHtml(data.sentence || '')}</div>
+      <div class="daily-sentence-translation">🇰🇷 ${escapeHtml(data.translation || '')}</div>
+      ${data.context ? `<div class="daily-sentence-context" style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted);">💡 ${escapeHtml(data.context)}</div>` : ''}
+    `;
+  }
+  
+  dailySentence.innerHTML = html;
   dailyPractice.style.display = 'block';
+  
+  // Initialize shadowing with the first theme if available
+  if (data.themes && data.themes.length > 0) {
+    setShadowingTarget(data.themes[0].sentence);
+  } else if (data.sentence) {
+    setShadowingTarget(data.sentence);
+  }
 }
+
+// Global function so onclick works
+window.setShadowingTarget = function(sentence) {
+  currentDailySentence = { sentence: sentence };
+  document.getElementById('daily-stt-result').style.display = 'none';
+  document.getElementById('daily-stt-text').textContent = '';
+  document.getElementById('daily-mic-status').textContent = '문장을 읽고 발음 평가를 받아보세요.';
+};
 
 // Daily TTS buttons
 dailyListenSlow.addEventListener('click', () => {

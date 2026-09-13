@@ -41,10 +41,13 @@ def chunk_transcript(items, is_whisper=False):
     current_start = 0
     
     for item in items:
+        start = item['start'] if isinstance(item, dict) else item.start
+        text = item['text'] if isinstance(item, dict) else item.text
+        
         if not current_text:
-            current_start = item['start']
+            current_start = start
             
-        current_text += item['text'] + " "
+        current_text += text + " "
         
         # 600자 정도마다 하나의 덩어리(청크)로 분리
         if len(current_text) > 600:

@@ -13,41 +13,50 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const YOUTUBE_API_URL = 'http://localhost:5000/api/youtube';
 
+// 현재 Groq에서 텍스트 생성용으로 사용 가능한 모델 목록 (우선순위 순)
+// 2026-09 Groq 공식 문서 기준 확인 완료
+const GROQ_TEXT_MODELS = [
+  'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+  'llama3-groq-70b-8192-tool-use-preview',
+  'qwen/qwen3.6-27b',
+  'qwen/qwen3.8-27b',
+  'gemma2-9b-it',
+  'mixtral-8x7b-32768',
+];
+
 let GROQ_MODEL = null;
 async function getGroqModel() {
   if (GROQ_MODEL) return GROQ_MODEL;
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/models', {
-      headers: { 'Authorization': `Bearer ${getGroqApiKey()}` }
-    });
-    const data = await response.json();
-    
-    // 텍스트 생성용 모델만 필터링 (가드레일, 비전 등 특수 목적 모델 제외)
-    const validModels = data.data
-      .map(m => m.id)
-      .filter(id => !id.toLowerCase().includes('guard') && !id.toLowerCase().includes('vision') && !id.toLowerCase().includes('whisper'));
-    
-    // 우선순위에 따라 가장 좋은 모델 선택 (대소문자 구분 없이)
-    const findModel = (keyword) => validModels.find(m => m.toLowerCase().includes(keyword.toLowerCase()));
-    
-    GROQ_MODEL = findModel('llama-3.3-70b') ||
-                 findModel('llama-3.1-70b') ||
-                 findModel('llama3-70b') ||
-                 findModel('llama-3.1-8b') ||
-                 findModel('llama3-8b') ||
-                 findModel('llama-3') ||
-                 findModel('llama') ||
-                 findModel('mixtral') ||
-                 findModel('gemma') ||
-                 validModels[0] ||
-                 'llama-3.1-8b-instant'; // 현재 가장 안정적인 최신 폴백
-                 
-    console.log("자동 선택된 Groq 모델:", GROQ_MODEL);
-    return GROQ_MODEL;
-  } catch (e) {
-    console.error("모델 목록 가져오기 실패", e);
-    return 'llama-3.1-8b-instant'; // Fallback
+  
+  // 모델 목록을 하나씩 시도해서 실제 사용 가능한 첫 번째 모델을 선택
+  for (const model of GROQ_TEXT_MODELS) {
+    try {
+      const res = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getGroqApiKey()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: 'user', content: 'Hi' }],
+          max_tokens: 1
+        })
+      });
+      if (res.ok) {
+        GROQ_MODEL = model;
+        console.log("✅ 사용 가능한 Groq 모델 확인:", model);
+        return GROQ_MODEL;
+      }
+      console.warn(`❌ 모델 ${model} 사용 불가, 다음 모델 시도...`);
+    } catch (e) {
+      console.warn(`❌ 모델 ${model} 연결 실패:`, e.message);
+    }
   }
+  
+  // 모든 모델이 실패하면 에러
+  throw new Error('사용 가능한 Groq AI 모델을 찾을 수 없습니다. API 키를 확인해주세요.');
 }
 
 export async function callGroq(mode, data, retries = 3) {

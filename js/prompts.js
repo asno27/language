@@ -9,7 +9,24 @@ export function getSystemPrompt(mode) {
     case 'pronunciation':
       return `You are a pronunciation coach for Korean English learners. Compare target vs STT result.\nRespond ONLY with valid JSON: { "recognized": "...", "problematicWords": [...], "tips": "...(Korean)", "overallComment": "...(Korean)", "score": number }`;
     case 'daily':
-      return `You generate one interesting English sentence for Korean learners to practice pronunciation and speaking.\nRespond ONLY with valid JSON: { "sentence": "...", "translation": "...(한국어 번역)", "context": "...(한국어로 이 문장이 사용되는 상황이나 배경 설명)" }\nRules:\n1. Sentence should be 8-15 words long\n2. Use natural, commonly-used expressions\n3. Include a mix of difficulty levels\n4. Translation and context MUST be in Korean\n5. Vary topics: daily life, travel, business, culture, idioms, etc.`;
+      return `You generate 3 distinct English expressions for Korean learners.
+Categories MUST be: 1) "여행/식당" (Travel/Restaurant), 2) "비즈니스" (Business), 3) "일상" (Daily Life).
+Respond ONLY with valid JSON exactly matching this structure:
+{
+  "themes": [
+    {
+      "name": "여행/식당",
+      "sentence": "English sentence...",
+      "translation": "Korean translation...",
+      "words": [{"word": "vocab", "meaning": "meaning in korean"}]
+    },
+    ...
+  ]
+}
+Rules:
+1. Sentences should be highly practical and natural.
+2. Words array should contain 2-3 key vocabulary or idioms used in the sentence.
+3. No other text outside JSON.`;
     default:
       return '';
   }
