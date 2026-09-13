@@ -721,6 +721,7 @@ if (nuanceFab) {
       nuanceSubmit.innerHTML = originalBtnText;
     }
   }
+  window.handleNuanceSubmit = handleNuanceSubmit;
   
   nuanceSubmit.addEventListener('click', handleNuanceSubmit);
   nuanceInput.addEventListener('keydown', (e) => {
