@@ -438,14 +438,28 @@ dailyListenFast.addEventListener('click', () => {
 });
 
 // Daily STT setup
-dailySpeech.onStart = () => { dailyMicBtn.classList.add('recording'); dailyMicStatus.textContent = '🔴 듣고 있습니다...'; dailyMicStatus.style.color = 'var(--error)'; };
-dailySpeech.onEnd = () => { dailyMicBtn.classList.remove('recording'); dailyMicStatus.textContent = '다시 시도하려면 마이크를 누르세요'; dailyMicStatus.style.color = ''; };
+dailySpeech.onStart = () => { 
+  dailyMicBtn.classList.add('recording'); 
+  dailyMicStatus.textContent = '녹음 중... (완료 시 버튼을 다시 누르세요)'; 
+  dailyMicStatus.style.color = 'var(--error)'; 
+  dailySttResult.style.display = 'block';
+  dailySttText.textContent = '듣고 있습니다...';
+};
+dailySpeech.onEnd = () => { 
+  dailyMicBtn.classList.remove('recording'); 
+  dailyMicStatus.textContent = '녹음이 완료되었습니다.'; 
+  dailyMicStatus.style.color = ''; 
+};
 dailySpeech.onError = (error) => {
   dailyMicBtn.classList.remove('recording');
-  let msg = '음성 인식 오류가 발생했습니다.';
-  if (error === 'no-speech') msg = '음성이 감지되지 않았습니다.';
-  else if (error === 'not-allowed') msg = '마이크 사용 권한이 필요합니다.';
+  let msg = '음성 인식 중 오류가 발생했습니다.';
+  if (error === 'no-speech') msg = '목소리가 감지되지 않았습니다.';
+  else if (error === 'not-allowed') msg = '마이크 권한이 거부되었습니다.';
   dailyMicStatus.textContent = msg; dailyMicStatus.style.color = 'var(--error)';
+};
+dailySpeech.onInterim = (text) => {
+  dailySttResult.style.display = 'block';
+  dailySttText.textContent = text;
 };
 dailySpeech.onResult = async (text) => {
   dailySttResult.style.display = 'block';
