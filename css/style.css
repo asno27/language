@@ -879,7 +879,15 @@ body::after {
   }
   
   .nav-tabs {
-    flex-direction: column;
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    justify-content: flex-start;
+  }
+  .nav-tabs::-webkit-scrollbar {
+    display: none;
   }
   
   .glass-card {
@@ -901,17 +909,19 @@ body::after {
   }
   
   .tab-btn {
-    min-width: 0;
-    padding: 0.6rem 0.5rem;
-    font-size: 0.85rem;
+    min-width: max-content;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+    flex-shrink: 0;
   }
   
   .tab-label {
-    display: none;
+    display: inline;
   }
   
   .tab-icon {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
+    margin-right: 0.4rem;
   }
   
   .vocab-stats {
