@@ -49,6 +49,10 @@
         <span class="tab-icon">📺</span>
         <span class="tab-label">오늘의 영어 추천</span>
       </button>
+      <button class="tab-btn" data-tab="worksheet">
+        <span class="tab-icon">📖</span>
+        <span class="tab-label">인터랙티브 학습지</span>
+      </button>
       <button class="tab-btn" data-tab="youtube">
         <span class="tab-icon">▶️</span>
         <span class="tab-label">유튜브 번역</span>
@@ -254,6 +258,52 @@
         </div>
         <div class="glass-card output-card" id="daily-output">
           <div class="placeholder-message"><span class="placeholder-icon">🗣️</span><p>문장을 듣고 따라 말하면 피드백을 받을 수 있어요</p></div>
+        </div>
+      </section>
+
+      <!-- Worksheet Pane -->
+      <section class="tab-pane" id="pane-worksheet">
+        <div class="glass-card input-card">
+          <div class="card-header">
+            <h2>📖 인터랙티브 학습지 & 쉐도잉</h2>
+            <p class="card-desc">소울영어 학습지를 직접 풀고 낭독하며 실력을 키워보세요</p>
+          </div>
+          <div class="worksheet-selector" style="margin-bottom: 1.5rem;">
+            <select id="worksheet-select" class="text-input" style="cursor:pointer; width:100%;">
+              <option value="" disabled selected>학습할 주차를 선택하세요</option>
+            </select>
+          </div>
+          <div id="worksheet-content" style="display:none;">
+            <div class="video-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:12px; margin-bottom:1.5rem;">
+              <iframe id="worksheet-video" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe>
+            </div>
+            
+            <h3 style="margin-bottom: 1rem; color: var(--accent-1);">✍️ 딕테이션 (빈칸 채우기)</h3>
+            <div id="worksheet-dictation" style="margin-bottom: 2rem;"></div>
+            <button class="submit-btn" id="worksheet-check-btn" style="margin-bottom: 2rem; width: 100%;">
+              <span class="btn-text">정답 확인하기</span>
+            </button>
+            
+            <h3 style="margin-bottom: 1rem; color: var(--accent-1);">🎙️ 쉐도잉 낭독 & 발음 평가</h3>
+            <div class="daily-sentence-card" style="margin-bottom: 1rem;">
+              <div class="daily-sentence-text" id="worksheet-shadowing-text" style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 10px;"></div>
+              <div class="daily-sentence-translation" id="worksheet-shadowing-ko" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 15px;"></div>
+              
+              <div class="input-actions" style="justify-content: space-between;">
+                <p class="mic-status" id="worksheet-mic-status" style="margin: 0; font-size: 0.9rem; flex-grow: 1;">버튼을 누르고 전체 요약을 낭독해 보세요</p>
+                <button class="mic-btn" id="worksheet-mic-btn" title="낭독 시작">
+                  <span class="mic-icon">🎙️</span>
+                </button>
+              </div>
+              <div id="worksheet-stt-result" style="display:none; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">내 인식된 음성:</div>
+                <div id="worksheet-stt-text" style="font-style: italic; color: #fff;"></div>
+              </div>
+            </div>
+            <div class="glass-card output-card" id="worksheet-output" style="margin-top:1rem; min-height: 100px;">
+              <div class="placeholder-message"><span class="placeholder-icon">🎯</span><p>낭독 후 발음과 유창성 피드백이 여기에 표시됩니다.</p></div>
+            </div>
+          </div>
         </div>
       </section>
 
