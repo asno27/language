@@ -607,6 +607,156 @@ function downloadTextFile(filename, text) {
   document.body.removeChild(element);
 }
 
+// === WORKSHEET & SHADOWING ===
+const worksheetSelect = document.getElementById('worksheet-select');
+const worksheetContent = document.getElementById('worksheet-content');
+const worksheetVideo = document.getElementById('worksheet-video');
+const worksheetDictation = document.getElementById('worksheet-dictation');
+const worksheetCheckBtn = document.getElementById('worksheet-check-btn');
+const worksheetShadowingText = document.getElementById('worksheet-shadowing-text');
+const worksheetShadowingKo = document.getElementById('worksheet-shadowing-ko');
+const worksheetMicBtn = document.getElementById('worksheet-mic-btn');
+const worksheetMicStatus = document.getElementById('worksheet-mic-status');
+const worksheetSttResult = document.getElementById('worksheet-stt-result');
+const worksheetSttText = document.getElementById('worksheet-stt-text');
+const worksheetOutput = document.getElementById('worksheet-output');
+
+let worksheetData = [];
+let currentWorksheet = null;
+const worksheetSpeech = new SpeechManager();
+
+if (worksheetSelect) {
+  fetch('data/worksheet.json')
+    .then(res => res.json())
+    .then(data => {
+      worksheetData = data;
+      data.forEach((ws, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${ws.week}주차: ${ws.title}`;
+        worksheetSelect.appendChild(option);
+      });
+    })
+    .catch(err => console.error('Failed to load worksheet data', err));
+
+  worksheetSelect.addEventListener('change', (e) => {
+    const idx = e.target.value;
+    if (idx === '') return;
+    currentWorksheet = worksheetData[idx];
+    renderWorksheet(currentWorksheet);
+  });
+  
+  function renderWorksheet(ws) {
+    worksheetContent.style.display = 'block';
+    worksheetVideo.src = ws.youtubeUrl;
+    
+    worksheetDictation.innerHTML = '';
+    ws.dictation.forEach((dict, i) => {
+      const container = document.createElement('div');
+      container.style.marginBottom = '1.5rem';
+      
+      let htmlSentence = dict.sentence;
+      const blankRegex = /\{(.*?)\}/g;
+      let match;
+      let blankIndex = 0;
+      while ((match = blankRegex.exec(dict.sentence)) !== null) {
+        const answer = match[1];
+        const hint = dict.hints[blankIndex] || '';
+        const inputHtml = `<input type="text" class="dictation-input" data-answer="${escapeHtml(answer)}" placeholder="${escapeHtml(hint)}" style="background:transparent; border:none; border-bottom: 2px solid var(--accent-1); color:#fff; font-size:1rem; outline:none; text-align:center; min-width:80px; width: ${Math.max(answer.length * 12, 80)}px;">`;
+        htmlSentence = htmlSentence.replace(match[0], inputHtml);
+        blankIndex++;
+      }
+      
+      container.innerHTML = `
+        <div style="font-size:1.1rem; line-height:1.6; margin-bottom:5px;">${i+1}. ${htmlSentence}</div>
+        <div style="color:var(--text-muted); font-size:0.95rem;">${escapeHtml(dict.ko)}</div>
+      `;
+      worksheetDictation.appendChild(container);
+    });
+    
+    worksheetCheckBtn.style.display = 'block';
+    worksheetCheckBtn.querySelector('.btn-text').textContent = '정답 확인하기';
+    worksheetCheckBtn.onclick = () => {
+      const inputs = worksheetDictation.querySelectorAll('.dictation-input');
+      let allCorrect = true;
+      inputs.forEach(input => {
+        const answer = input.getAttribute('data-answer');
+        if (input.value.trim().toLowerCase() === answer.toLowerCase()) {
+          input.style.borderBottomColor = 'var(--success)';
+          input.style.color = 'var(--success)';
+        } else {
+          input.style.borderBottomColor = 'var(--error)';
+          input.style.color = 'var(--error)';
+          input.value = answer;
+          allCorrect = false;
+        }
+      });
+      worksheetCheckBtn.querySelector('.btn-text').textContent = allCorrect ? '완벽합니다! 🎉' : '다시 복습해보세요';
+    };
+    
+    worksheetShadowingText.textContent = ws.shadowing.text;
+    worksheetShadowingKo.textContent = ws.shadowing.ko;
+    worksheetOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">🎯</span><p>낭독 후 발음과 유창성 피드백이 여기에 표시됩니다.</p></div>`;
+    worksheetSttResult.style.display = 'none';
+  }
+
+  if (!worksheetSpeech.isSupported) {
+    worksheetMicBtn.style.opacity = '0.5';
+    worksheetMicBtn.style.cursor = 'not-allowed';
+    worksheetMicStatus.textContent = '현재 브라우저에서는 음성 인식을 지원하지 않습니다.';
+  }
+  
+  let worksheetRecording = false;
+  worksheetSpeech.onStart = () => { 
+    worksheetRecording = true;
+    worksheetMicBtn.classList.add('recording'); 
+    worksheetMicStatus.textContent = '듣고 있습니다... 문단을 모두 읽어주세요.'; 
+    worksheetMicStatus.style.color = 'var(--error)'; 
+  };
+  worksheetSpeech.onEnd = () => { 
+    worksheetRecording = false;
+    worksheetMicBtn.classList.remove('recording'); 
+    worksheetMicStatus.textContent = '버튼을 누르고 전체 요약을 낭독해 보세요'; 
+    worksheetMicStatus.style.color = ''; 
+  };
+  worksheetSpeech.onError = (error) => {
+    worksheetMicStatus.textContent = `오류 발생: ${error}`;
+    setTimeout(() => {
+      worksheetMicStatus.textContent = '버튼을 누르고 전체 요약을 낭독해 보세요';
+    }, 3000);
+  };
+  
+  worksheetSpeech.onResult = async (text) => {
+    if (!text) return;
+    worksheetSttResult.style.display = 'block';
+    worksheetSttText.textContent = text;
+    
+    worksheetOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">⏳</span><p>AI가 발음과 유창성을 분석하고 있습니다...</p></div>`;
+    try {
+      const result = await callGemini('pronunciation', { recognized: text, target: currentWorksheet.shadowing.text });
+      
+      let html = `<div class="result-section fade-in"><div class="result-label recognized">🎯 당신의 낭독</div><div class="result-text highlight">${escapeHtml(result.recognized || text)}</div></div>`;
+      if (result.problematicWords?.length) {
+        html += `<div class="result-section fade-in"><div class="result-label warning">⚠️ 주의해야 할 단어</div><div class="result-text">${result.problematicWords.map(w => `<span style="background:rgba(255,107,107,0.15);color:var(--error);padding:2px 8px;border-radius:4px;margin-right:6px">${escapeHtml(w)}</span>`).join(' ')}</div></div>`;
+      }
+      if (result.tips) html += `<div class="result-section fade-in"><div class="result-label tip">💡 발음/유창성 팁</div><div class="result-text">${escapeHtml(result.tips)}</div></div>`;
+      if (result.overallComment) html += `<div class="result-section fade-in"><div class="result-label overall">평가 점수 ${result.score !== undefined ? `<span style="background:linear-gradient(135deg,var(--accent-1),var(--accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.1rem;margin-left:8px">${result.score}점</span>` : ''}</div><div class="result-text">${escapeHtml(result.overallComment)}</div></div>`;
+      worksheetOutput.innerHTML = html;
+    } catch (e) {
+      showError(worksheetOutput, e.message);
+    }
+  };
+
+  worksheetMicBtn.addEventListener('click', () => {
+    if (!currentWorksheet) return;
+    if (worksheetRecording) {
+      worksheetSpeech.stop();
+    } else {
+      worksheetSpeech.start();
+    }
+  });
+}
+
 // === YOUTUBE TRANSLATION ===
 
 async function handleYoutubeSubmit() {
