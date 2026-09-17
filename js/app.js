@@ -611,6 +611,7 @@ function displayDailySentence(data) {
   }
   
   dailySentence.innerHTML = html;
+  makeTextClickable(dailySentence);
   dailyPractice.style.display = 'block';
   
   // Initialize shadowing with the first theme if available
