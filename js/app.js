@@ -8,6 +8,113 @@ window.speakText = speak;
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
+// === MINI DICTIONARY ===
+function makeTextClickable(container) {
+  if (!container) return;
+  function walk(node) {
+    if (node.nodeType === 3) {
+      const text = node.nodeValue;
+      if (!text.trim()) return;
+      const fragment = document.createDocumentFragment();
+      let lastIndex = 0;
+      const regex = /[a-zA-Z']+/g;
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+        }
+        const span = document.createElement('span');
+        span.className = 'clickable-word';
+        span.textContent = match[0];
+        fragment.appendChild(span);
+        lastIndex = regex.lastIndex;
+      }
+      if (lastIndex < text.length) {
+        fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+      }
+      if (fragment.childNodes.length > 0) {
+        node.parentNode.replaceChild(fragment, node);
+      }
+    } else if (node.nodeType === 1) {
+      const tag = node.tagName.toLowerCase();
+      if (['input', 'button', 'textarea', 'a', 'script', 'style'].includes(tag)) return;
+      if (node.classList.contains('clickable-word')) return;
+      Array.from(node.childNodes).forEach(walk);
+    }
+  }
+  Array.from(container.childNodes).forEach(walk);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const popup = document.getElementById('mini-dict-popup');
+  const wordEl = document.getElementById('mini-dict-word');
+  const phoneticEl = document.getElementById('mini-dict-phonetic');
+  const meaningsEl = document.getElementById('mini-dict-meanings');
+  const addBtn = document.getElementById('mini-dict-add-btn');
+  let currentWord = '';
+
+  document.body.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('clickable-word')) {
+      const word = e.target.textContent.replace(/[^a-zA-Z']/g, '');
+      if (!word) return;
+      
+      currentWord = word.toLowerCase();
+      const rect = e.target.getBoundingClientRect();
+      
+      popup.style.display = 'block';
+      popup.style.left = (rect.left + rect.width / 2) + window.scrollX + 'px';
+      popup.style.top = (rect.top + window.scrollY) + 'px';
+      
+      wordEl.textContent = word;
+      phoneticEl.textContent = '';
+      meaningsEl.innerHTML = '<div class="placeholder-message" style="margin:0; padding:10px 0;"><span class="placeholder-icon" style="font-size:1.2rem;">⏳</span><p style="font-size:0.8rem; margin:0;">검색 중...</p></div>';
+      
+      if (isWordSaved(currentWord)) {
+        addBtn.textContent = '단어장에 있음';
+        addBtn.style.background = 'var(--success)';
+        addBtn.disabled = true;
+      } else {
+        addBtn.textContent = '+ 단어장에 추가';
+        addBtn.style.background = 'var(--accent-2)';
+        addBtn.disabled = false;
+      }
+      
+      const dictData = await lookupDictionary(currentWord);
+      if (!dictData) {
+        meaningsEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;">결과를 찾을 수 없습니다.</div>';
+        return;
+      }
+      
+      phoneticEl.textContent = dictData.phonetic || '';
+      if (dictData.meanings && dictData.meanings.length > 0) {
+        let html = '';
+        dictData.meanings.slice(0, 2).forEach(m => {
+           html += `<div style="margin-bottom:6px;"><span style="color:var(--accent-2); font-size:0.8rem; font-weight:bold;">[${escapeHtml(m.partOfSpeech)}]</span><ul style="margin:3px 0; padding-left:15px; font-size:0.85rem; color:rgba(255,255,255,0.9);">`;
+           m.definitions.slice(0, 2).forEach(d => {
+             html += `<li>${escapeHtml(d)}</li>`;
+           });
+           html += `</ul></div>`;
+        });
+        meaningsEl.innerHTML = html;
+      }
+      
+    } else if (popup && !popup.contains(e.target)) {
+      popup.style.display = 'none';
+    }
+  });
+  
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      if (currentWord && !isWordSaved(currentWord)) {
+        saveWord(currentWord);
+        addBtn.textContent = '저장됨 ✓';
+        addBtn.style.background = 'var(--success)';
+        addBtn.disabled = true;
+      }
+    });
+  }
+});
+
 // DOM elements
 window.handleNuanceSubmit = async function() {
   const nuanceInput = document.getElementById('nuance-input');
@@ -75,6 +182,7 @@ window.handleNuanceSubmit = async function() {
       });
     }
     nuanceOutput.innerHTML = html;
+    makeTextClickable(nuanceOutput);
   } catch (error) {
     console.error(error);
     const esc = (str) => String(str).replace(/[&<>'"]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[tag] || tag));
@@ -180,6 +288,7 @@ function renderWritingResult(data) {
     }
   }
   writingOutput.innerHTML = html;
+  makeTextClickable(writingOutput);
 }
 
 async function handleWritingSubmit() {
@@ -200,6 +309,7 @@ function renderTranslationResult(data) {
   ${isEnglishResult ? `<button class="audio-btn" onclick="speakText('${escapeHtml(data.translated).replace(/'/g, "\\'")}')">🔊 영어 발음 듣기</button>` : ''}</div>`;
   if (data.note) html += `<div class="result-section fade-in"><div class="result-label note">📝 참고 사항</div><div class="result-text">${escapeHtml(data.note)}</div></div>`;
   translationOutput.innerHTML = html;
+  makeTextClickable(translationOutput);
 }
 
 async function handleTranslationSubmit() {
@@ -239,6 +349,7 @@ function renderDictionaryResult(dictData, llmData) {
     html += `</div>`;
   }
   dictionaryOutput.innerHTML = html;
+  makeTextClickable(dictionaryOutput);
 
   const saveBtn = document.getElementById('dict-save-btn');
   if (saveBtn && !saveBtn.disabled) {
@@ -302,6 +413,7 @@ function renderPronunciationResult(data) {
   if (data.tips) html += `<div class="result-section fade-in"><div class="result-label tip">🗣️ 발음 팁</div><div class="result-text">${escapeHtml(data.tips)}</div></div>`;
   html += `<div class="result-section fade-in"><div class="result-label overall">👏 총평 ${data.score !== undefined ? `<span style="background:linear-gradient(135deg,var(--accent-1),var(--accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.1rem;margin-left:8px">${data.score}점</span>` : ''}</div><div class="result-text">${escapeHtml(data.overallComment)}</div></div>`;
   pronunciationOutput.innerHTML = html;
+  makeTextClickable(pronunciationOutput);
 }
 
 // === VOCABULARY ===
@@ -581,6 +693,7 @@ dailySpeech.onResult = async (text) => {
     if (result.tips) html += `<div class="result-section fade-in"><div class="result-label tip">🗣️ 발음 팁</div><div class="result-text">${escapeHtml(result.tips)}</div></div>`;
     if (result.overallComment) html += `<div class="result-section fade-in"><div class="result-label overall">👏 총평</div><div class="result-text">${escapeHtml(result.overallComment)}</div></div>`;
     dailyOutput.innerHTML = html;
+  makeTextClickable(dailyOutput);
   } catch (e) { showError(dailyOutput, e.message); }
   finally { hideLoading(); }
 };
@@ -672,6 +785,7 @@ if (worksheetSelect) {
         <div style="color:var(--text-muted); font-size:0.95rem;">${escapeHtml(dict.ko)}</div>
       `;
       worksheetDictation.appendChild(container);
+      makeTextClickable(container);
     });
     
     worksheetCheckBtn.style.display = 'block';
@@ -695,6 +809,7 @@ if (worksheetSelect) {
     };
     
     worksheetShadowingText.textContent = ws.shadowing.text;
+    makeTextClickable(worksheetShadowingText);
     worksheetShadowingKo.textContent = ws.shadowing.ko;
     worksheetOutput.innerHTML = `<div class="placeholder-message"><span class="placeholder-icon">🎯</span><p>낭독 후 발음과 유창성 피드백이 여기에 표시됩니다.</p></div>`;
     worksheetSttResult.style.display = 'none';
@@ -742,6 +857,7 @@ if (worksheetSelect) {
       if (result.tips) html += `<div class="result-section fade-in"><div class="result-label tip">💡 발음/유창성 팁</div><div class="result-text">${escapeHtml(result.tips)}</div></div>`;
       if (result.overallComment) html += `<div class="result-section fade-in"><div class="result-label overall">평가 점수 ${result.score !== undefined ? `<span style="background:linear-gradient(135deg,var(--accent-1),var(--accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.1rem;margin-left:8px">${result.score}점</span>` : ''}</div><div class="result-text">${escapeHtml(result.overallComment)}</div></div>`;
       worksheetOutput.innerHTML = html;
+      makeTextClickable(worksheetOutput);
     } catch (e) {
       showError(worksheetOutput, e.message);
     }
