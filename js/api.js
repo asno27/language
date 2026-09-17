@@ -13,23 +13,27 @@ export function getGeminiApiKey() {
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const YOUTUBE_API_URL = 'http://localhost:8080/api/youtube';
 
-// Gemini fallback models in case of 503 High Demand
-const GEMINI_MODELS = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-pro'];
+// Gemini 3.6 Flash 모델 사용 (응답 속도와 품질이 매우 우수)
+const GEMINI_MODEL = 'gemini-3.6-flash';
 
-export async function callGemini(mode, data, retries = 3, modelIndex = 0) {
+export async function callGemini(mode, data, retries = 3) {
   const systemPrompt = getSystemPrompt(mode);
   const userMessage = getUserPrompt(mode, data);
   const apiKey = getGeminiApiKey();
   
-  if (modelIndex >= GEMINI_MODELS.length) {
-    throw new Error('All Gemini models are currently experiencing high demand or are unavailable. Please try again later.');
-  }
-  const currentModel = GEMINI_MODELS[modelIndex];
-  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
+  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
   const payload = {
-    contents: [{ role: "user", parts: [{ text: userMessage }] }],
-    systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: userMessage }]
+      }
+    ],
+    systemInstruction: {
+      role: "system",
+      parts: [{ text: systemPrompt }]
+    },
     generationConfig: {
       temperature: 0.3,
       responseMimeType: "application/json"
@@ -38,7 +42,9 @@ export async function callGemini(mode, data, retries = 3, modelIndex = 0) {
   
   const response = await fetch(GEMINI_API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify(payload)
   });
   
@@ -46,14 +52,10 @@ export async function callGemini(mode, data, retries = 3, modelIndex = 0) {
     if (response.status === 429 && retries > 0) {
       console.warn(`Rate limit exceeded. Retrying in 3 seconds... (${retries} retries left)`);
       await new Promise(r => setTimeout(r, 3000));
-      return callGemini(mode, data, retries - 1, modelIndex);
-    }
-    if (response.status === 503) {
-      console.warn(`Model ${currentModel} is overloaded (503). Trying next model...`);
-      return callGemini(mode, data, retries, modelIndex + 1);
+      return callGemini(mode, data, retries - 1);
     }
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error?.message || `API Error: ${response.status}`);
+    throw new Error(error.error?.message || `API 오류: ${response.status}`);
   }
   
   const resultData = await response.json();
