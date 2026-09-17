@@ -79,7 +79,13 @@ document.addEventListener('DOMContentLoaded', () => {
         addBtn.disabled = false;
       }
       
-      const dictData = await lookupDictionary(currentWord);
+      let dictData = null;
+      try {
+        dictData = await callGemini('dictionary', { word: currentWord });
+      } catch (e) {
+        console.error(e);
+      }
+      
       if (!dictData) {
         meaningsEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;">결과를 찾을 수 없습니다.</div>';
         return;
