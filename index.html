@@ -333,6 +333,18 @@
       <!-- Nuance Chatbot Floating Button -->
       <button class="nuance-fab" id="nuance-fab" title="뉘앙스 감별기" onclick="document.getElementById('nuance-overlay').style.display='flex'; document.getElementById('nuance-input').focus();">💡 뉘앙스 질문</button>
 
+      <!-- Mini Dictionary Popup -->
+      <div id="mini-dict-popup">
+        <div class="mini-dict-header">
+          <span class="mini-dict-word" id="mini-dict-word">Word</span>
+          <span class="mini-dict-phonetic" id="mini-dict-phonetic"></span>
+        </div>
+        <div class="mini-dict-meanings" id="mini-dict-meanings">
+          <div class="placeholder-message" style="margin:0; padding:10px 0;"><span class="placeholder-icon" style="font-size:1.2rem;">⏳</span><p style="font-size:0.8rem; margin:0;">검색 중...</p></div>
+        </div>
+        <button class="mini-dict-add-btn" id="mini-dict-add-btn">+ 단어장에 추가</button>
+      </div>
+
       <!-- Nuance Chatbot Modal -->
       <div class="nuance-overlay" id="nuance-overlay" style="display:none;" onclick="if(event.target === this) this.style.display='none';">
         <div class="nuance-modal glass-card">
