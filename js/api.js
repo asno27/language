@@ -13,27 +13,23 @@ export function getGeminiApiKey() {
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const YOUTUBE_API_URL = 'http://localhost:8080/api/youtube';
 
-// Gemini 3.6 Flash 모델 사용 (응답 속도와 품질이 매우 우수)
-const GEMINI_MODEL = 'gemini-3.6-flash';
+// Gemini fallback models in case of 503 High Demand
+const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
 
-export async function callGemini(mode, data, retries = 3) {
+export async function callGemini(mode, data, retries = 3, modelIndex = 0) {
   const systemPrompt = getSystemPrompt(mode);
   const userMessage = getUserPrompt(mode, data);
   const apiKey = getGeminiApiKey();
   
-  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+  if (modelIndex >= GEMINI_MODELS.length) {
+    throw new Error('All Gemini models are currently experiencing high demand or are unavailable. Please try again later.');
+  }
+  const currentModel = GEMINI_MODELS[modelIndex];
+  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
   const payload = {
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: userMessage }]
-      }
-    ],
-    systemInstruction: {
-      role: "system",
-      parts: [{ text: systemPrompt }]
-    },
+    contents: [{ role: "user", parts: [{ text: userMessage }] }],
+    systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
     generationConfig: {
       temperature: 0.3,
       responseMimeType: "application/json"
@@ -42,9 +38,7 @@ export async function callGemini(mode, data, retries = 3) {
   
   const response = await fetch(GEMINI_API_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
   
@@ -52,26 +46,29 @@ export async function callGemini(mode, data, retries = 3) {
     if (response.status === 429 && retries > 0) {
       console.warn(`Rate limit exceeded. Retrying in 3 seconds... (${retries} retries left)`);
       await new Promise(r => setTimeout(r, 3000));
-      return callGemini(mode, data, retries - 1);
+      return callGemini(mode, data, retries - 1, modelIndex);
+    }
+    if (response.status === 503) {
+      console.warn(`Model ${currentModel} is overloaded (503). Trying next model...`);
+      return callGemini(mode, data, retries, modelIndex + 1);
     }
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error?.message || `API 오류: ${response.status}`);
+    throw new Error(error.error?.message || `API Error: ${response.status}`);
   }
   
-  const result = await response.json();
-  const rawContent = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  
-  // JSON 모드를 사용하더라도 가끔 마크다운 코드 블록이 포함될 수 있으므로 정제
-  let cleanContent = rawContent.trim();
-  const jsonMatch = cleanContent.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (jsonMatch) {
-    cleanContent = jsonMatch[1].trim();
-  }
+  const resultData = await response.json();
+  const textContent = resultData.candidates?.[0]?.content?.parts?.[0]?.text || '';
   
   try {
-    return JSON.parse(cleanContent);
-  } catch (e1) {
-    throw new Error(`AI 데이터 파싱 실패 (${e1.message}). 원본: ${rawContent.substring(0, 70)}...`);
+    let cleanText = textContent.trim();
+    if (cleanText.startsWith('```json')) cleanText = cleanText.substring(7);
+    if (cleanText.startsWith('```')) cleanText = cleanText.substring(3);
+    if (cleanText.endsWith('```')) cleanText = cleanText.slice(0, -3);
+    
+    return JSON.parse(cleanText.trim());
+  } catch (e) {
+    console.error("Failed to parse Gemini response:", textContent);
+    throw new Error("Invalid response format from AI.");
   }
 }
 
