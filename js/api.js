@@ -11,7 +11,7 @@ export function getGeminiApiKey() {
 }
 
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
-const YOUTUBE_API_URL = 'http://localhost:8080/api/youtube';
+const YOUTUBE_API_URL = 'https://language-7h32.onrender.com/api/youtube';
 
 // Gemini 3.6 Flash 모델 사용 (응답 속도와 품질이 매우 우수)
 const GEMINI_MODEL = 'gemini-3.6-flash';
