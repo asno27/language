@@ -14,7 +14,7 @@ const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const YOUTUBE_API_URL = 'http://localhost:8080/api/youtube';
 
 // Gemini fallback models in case of 503 High Demand
-const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+const GEMINI_MODELS = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-pro'];
 
 export async function callGemini(mode, data, retries = 3, modelIndex = 0) {
   const systemPrompt = getSystemPrompt(mode);
