@@ -79,8 +79,9 @@ async def process_youtube(req: YoutubeRequest):
     file_path = None
     try:
         client = Groq(api_key=req.api_key)
-        
-        cookies_file = "cookies.txt"
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        cookies_file = os.path.join(current_dir, "cookies.txt")
         
         ydl_opts = {
             'format': 'm4a/bestaudio/best',
@@ -90,6 +91,8 @@ async def process_youtube(req: YoutubeRequest):
         
         if os.path.exists(cookies_file):
             ydl_opts['cookiefile'] = cookies_file
+        else:
+            print(f"Warning: cookies.txt not found at {cookies_file}")
             
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
