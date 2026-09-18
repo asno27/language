@@ -870,13 +870,6 @@ body::after {
 
 /* 17. Responsive */
 @media (max-width: 768px) {
-  #app {
-    padding: 1rem;
-  }
-  
-  .app-title {
-    font-size: 2rem;
-  }
   
   .nav-tabs {
     flex-direction: row;
