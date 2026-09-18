@@ -80,28 +80,22 @@ async def process_youtube(req: YoutubeRequest):
     try:
         client = Groq(api_key=req.api_key)
         
-        download_success = False
-        last_err = None
-        for browser in ['chrome', 'edge', 'firefox', None]:
-            ydl_opts = {
-                'format': 'm4a/bestaudio/best',
-                'outtmpl': f'temp_{video_id}.%(ext)s',
-                'quiet': True,
-            }
-            if browser:
-                ydl_opts['cookiesfrombrowser'] = (browser,)
+        cookies_file = "cookies.txt"
+        
+        ydl_opts = {
+            'format': 'm4a/bestaudio/best',
+            'outtmpl': f'temp_{video_id}.%(ext)s',
+            'quiet': True,
+        }
+        
+        if os.path.exists(cookies_file):
+            ydl_opts['cookiefile'] = cookies_file
             
-            try:
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([req.url])
-                download_success = True
-                break
-            except Exception as e:
-                last_err = e
-                continue
-                
-        if not download_success:
-            raise Exception(f"오디오 다운로드 실패 (봇 방지/브라우저 쿠키 오류): {str(last_err)}")
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([req.url])
+        except Exception as e:
+            raise Exception(f"오디오 다운로드 실패 (유튜브 봇 차단 발생). cookies.txt를 추출해 server 폴더에 넣어주세요.: {str(e)}")
             
         files = glob.glob(f"temp_{video_id}.*")
         if not files:
