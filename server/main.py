@@ -68,7 +68,7 @@ async def process_youtube(req: YoutubeRequest):
     # 1. 먼저 공식 자막(CC) 추출 시도
     try:
         yt_api = YouTubeTranscriptApi()
-        transcript = yt_api.fetch(video_id, languages=['en', 'en-US', 'en-GB'])
+        transcript = yt_api.fetch(video_id, languages=['ko', 'en', 'en-US', 'en-GB'])
         chunks = chunk_transcript(transcript)
         return {"segments": chunks, "source": "cc"}
     except Exception as e:
