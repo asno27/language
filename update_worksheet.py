@@ -1,142 +1,6 @@
-[
-  {
-    "week": 1,
-    "title": "영국 오징어게임 토론",
-    "youtubeUrl": "https://www.youtube.com/embed/aU4io4L4Spc",
-    "dictation": [
-      {
-        "sentence": "It is ridiculous to {single out} a television show as a {scapegoat} for violence issues.",
-        "ko": "한 개의 텔레비전 쇼를 잡아골라 폭력 문제의 희생양으로 삼는 것은 말도 안됩니다.",
-        "hints": [
-          "뽑다, 고르다",
-          "희생양"
-        ]
-      },
-      {
-        "sentence": "Parents don't have time to {monitor} everything.",
-        "ko": "부모들은 모든 것을 감시할 시간이 없습니다.",
-        "hints": [
-          "관찰하다, 감시하다"
-        ]
-      },
-      {
-        "sentence": "Very young children don't understand that it is just a program. It all becomes {messed up}.",
-        "ko": "그것은 모두 뒤죽박죽이 되어버립니다.",
-        "hints": [
-          "뒤죽박죽이된, 섞이는"
-        ]
-      }
-    ],
-    "shadowing": {
-      "text": "Two people are having a debate about the hit drama, <Squid Game>. The woman argues that the drama can be very dangerous to children because parents don’t have time to monitor everything. And very young children don't understand that it is just a program. And it all becomes messed up in their head. And she also says that we are in a major global crisis with violence. However, the man argues that <Squid Game> is no more violent that other TV shows. And it is ridiculous to single out a television show as a scapegoat for violence issues. And he also points out that it is not fair to criticize the show after seeing just a clip of it.",
-      "ko": "두 사람이 <오징어 게임>이라는 히트 드라마에 대해 논쟁 중입니다. 여성은 부모님이 모든 것을 모니터링할 시간이 없기 때문에 아이들에게 매우 위험하다고 주장합니다. 매우 어린 아이들은 그것이 단지 프로그램임을 이해하지 못하며 머리 속에서 그것들이 뒤죽박죽이 된다는 것입니다. 그리고 그녀는 우리가 폭력으로 인한 대규모 글로벌 위기에 처해 있다고 말합니다. 그러나 남성은 <오징어 게임>이 다른 TV 프로그램보다 더 폭력적이지 않다고 주장합니다. 또한 폭력 문제를 이유로 한 텔레비전 프로그램을 희생양으로 만드는 것은 어이없는 일이라고 합니다. 또한 그는 단지 한 클립만 본 후에 프로그램을 비판하는 것은 공정하지 않다는 것을 지적합니다."
-    }
-  },
-  {
-    "week": 2,
-    "title": "캐나다 BTS 군입대 토크쇼",
-    "youtubeUrl": "https://www.youtube.com/embed/A2yPAtMeYBI",
-    "dictation": [
-      {
-        "sentence": "They plan to reconvene in 2025. It’s gonna {fly by}.",
-        "ko": "시간은 금방 지나갈거에요.",
-        "hints": [
-          "시간은 금방 지나갈거에요"
-        ]
-      },
-      {
-        "sentence": "Do you think though that the band they {could have used} their wealth and power {to be exempted}?",
-        "ko": "그들은 부와 권력을 이용해서 면제 받을 수도 있었다.",
-        "hints": [
-          "~할 수도 있었는데",
-          "면제 받기 위해서"
-        ]
-      },
-      {
-        "sentence": "I {don't mean to} fear monger but on the other hand, I don't know that tension has ever been higher.",
-        "ko": "공포심을 조장하려는 것은 아닙니다.",
-        "hints": [
-          "~하려는 의도는 없어요"
-        ]
-      }
-    ],
-    "shadowing": {
-      "text": "This is a Canadian talk show. The hosts are talking about BTS members joining the army. One of hosts is a fan of BTS and said that time will fly by. And they also say BTS members could have used their power to be exempted if they wanted. But they did not do so. It looks like these Canadian hosts are learning about South Korea’s military service system.",
-      "ko": "이것은 캐나다 토크쇼이다. 진행자들은 BTS가 군대에 가는 문제에 대해 이야기하고 있다. 한 진행자는 BTS의 팬이며 시간이 금방 흘러갈 것이라고 말했다. 또, BTS 멤버들이 원했다면 자신들의 힘을 이용해 면제를 받을 수도 있었을 것이라고 말했다. 하지만 그들은 그렇게 하지 않았다는 것이다. 이 캐나다 진행자들은 한국의 군복무 제도에 대해서 배우고 있는 듯 보인다."
-    }
-  },
-  {
-    "week": 3,
-    "title": "BBC 뉴스, ‘K예능이 대세?’",
-    "youtubeUrl": "https://www.youtube.com/embed/bi08VXx_89g",
-    "dictation": [
-      {
-        "sentence": "It {unlocks} so much more content.",
-        "ko": "그것이 훨씬 더 많은 콘텐츠의 문을 열어줍니다.",
-        "hints": [
-          "열다, 잠금해제하다"
-        ]
-      },
-      {
-        "sentence": "Reality TV shows have been {hugely popular} in Korea for decades.",
-        "ko": "리얼리티 쇼는 한국에서 몇 십년 동안 엄청나게 인기가 있었습니다.",
-        "hints": [
-          "엄청나게 인기있는"
-        ]
-      },
-      {
-        "sentence": "It's just that they {haven't broken through} in the same way as K-pop and k-dramas.",
-        "ko": "단지 그것들은 K팝이나 K드라마처럼 벽을 넘어서지 못했을 뿐입니다.",
-        "hints": [
-          "돌파하지 못했다, 넘지 못했다"
-        ]
-      },
-      {
-        "sentence": "K-pop {acts} have turned heads with their new music, choreography and style.",
-        "ko": "케이팝 가수들은 그들의 새로운 음악과 안무 그리고 스타일로 사람들의 주목을 끌었습니다.",
-        "hints": [
-          "공연자, 가수"
-        ]
-      }
-    ],
-    "shadowing": {
-      "text": "The great success of ‘Squid game’ unlocked so much more Korean content for global viewers. And for decades, Korean reality shows have been hugely popular inside Korea. It’s just that they haven’t broken through in the same way as Kpop and K-dramas. And interestingly, all popular Korean content has something in common. It's visuality. For example, K-pop acts have turned heads not just with music but with their choreography and style.",
-      "ko": "‘오징어 게임’의 대성공으로 인해 훨씬 더 많은 한국 콘텐츠들이 글로벌 시청자들에게 알려지게 되었습니다. 그리고 수십 년간 한국 리얼리티 쇼는 한국 내에서 크게 인기를 끌어왔습니다. 다만 K팝과 K드라마처럼 세계적으로 도약하지 않았을 뿐입니다. 흥미롭게도, 모든 인기 있는 한국 콘텐츠는 공통점을 가지고 있습니다. 비주얼입니다. 예를 들어, K팝 그룹들은 음악뿐만 아니라 안무와 스타일로 인기를 끌고 있습니다."
-    }
-  },
-  {
-    "week": 4,
-    "title": "CNN 뉴스 ‘조용한 사직’",
-    "youtubeUrl": "https://www.youtube.com/embed/sSNCWRdj2rU",
-    "dictation": [
-      {
-        "sentence": "Workers are so {in demand}.",
-        "ko": "노동자들의 수요가 굉장히 높다.",
-        "hints": [
-          "수요가 있는"
-        ]
-      },
-      {
-        "sentence": "{Going up the corporate ladder} isn’t my end goal.",
-        "ko": "회사에서 높은 자리에 오르는 것이 나의 최종적인 목표가 아니다.",
-        "hints": [
-          "회사에서 승진하기"
-        ]
-      },
-      {
-        "sentence": "Workers mentally {step back from} the burdens of work working the {bare} minimum number of hours.",
-        "ko": "직원들은 최소한의 근무시간만 지켜서 일한다.",
-        "hints": [
-          "~로 부터 물러서다",
-          "가장 기본적인 것만 갖춘"
-        ]
-      }
-    ],
-    "shadowing": {
-      "text": "Quiet quitting is a trending concept where workers work the bare minimum number of hours instead of working overtime or doing the best they can. It’s happening because workers are so in demand and a lot of people want to mentally step back from the burdens of work. Some boomers argue that it’s the dumbest idea because they believe that ‘you get out what you put in’. But Gen Z says that going up the corporate ladder isn’t their end goal anyway.",
-      "ko": "조용한 퇴사는 근로자들이 초과 근무를 하거나 최선을 다하지 않고 최소한의 업무 시간만 근무하는 유행하는 개념입니다. 이것은 근로자들이 매우 수요가 높고, 많은 사람들이 정신적으로 일에 대한 부담감을 덜어내고 싶어하기 때문에 일어나는 일입니다. 일부 부머세대는 '일한만큼 얻는다'고 믿기 때문에 이것이 가장 어리석은 생각이라고 주장합니다. 그러나 Z세대는 어차피 회사에서 높은 자리에 올라가는 것이 그들의 최종 목표가 아니라고 말합니다."
-    }
-  },
+import json
+
+new_weeks = [
   {
     "week": 5,
     "title": "ChatGPT 가 위협하는 직업",
@@ -145,23 +9,17 @@
       {
         "sentence": "Microsoft is the latest major tech company to {cut costs} by slashing jobs.",
         "ko": "마이크로소프트는 일자리를 줄여서 비용을 절감한 주요 테크 회사입니다.",
-        "hints": [
-          "비용을 절감하다"
-        ]
+        "hints": ["비용을 절감하다"]
       },
       {
         "sentence": "This is different not because of the number of people {being laid off} but because of who.",
         "ko": "이번 경우는 다릅니다. 해고되는 사람들의 숫자 때문이 아니라 누가 해고되느냐 때문입니다.",
-        "hints": [
-          "해고되는"
-        ]
+        "hints": ["해고되는"]
       },
       {
         "sentence": "The US economy is knowledge and information work and that's who's going to be most {squarely affected} by this.",
         "ko": "미국 경제는 지식과 정보 사업입니다. 그리고 바로 그 사람들이 가장 정면으로 영향을 받게 될 것입니다.",
-        "hints": [
-          "가장 정면으로 영향을 받는"
-        ]
+        "hints": ["가장 정면으로 영향을 받는"]
       }
     ],
     "shadowing": {
@@ -177,37 +35,27 @@
       {
         "sentence": "K-pop fandom is incredibly {diverse}.",
         "ko": "K-pop 팬덤은 엄청나게 다양합니다.",
-        "hints": [
-          "다양한"
-        ]
+        "hints": ["다양한"]
       },
       {
         "sentence": "American music audience is getting less {xenophobic} over time.",
         "ko": "미국 음악 청중들은 시간이 지남에 따라 외국인(문화)을 덜 배척하게 되고 있습니다.",
-        "hints": [
-          "외국인(문화)을 배척하는"
-        ]
+        "hints": ["외국인(문화)을 배척하는"]
       },
       {
         "sentence": "The U.S market is {fickle} by ignorance.",
         "ko": "미국 시장은 무지로 인해 변덕스럽습니다.",
-        "hints": [
-          "변덕스러운"
-        ]
+        "hints": ["변덕스러운"]
       },
       {
         "sentence": "I {have a big problem with} terms like Kpop factory.",
         "ko": "저는 Kpop factory와 같은 용어들에 큰 불만이 있습니다(동의할 수 없습니다).",
-        "hints": [
-          "~에 큰 문제가 있다, 동의할 수 없다"
-        ]
+        "hints": ["~에 큰 문제가 있다, 동의할 수 없다"]
       },
       {
         "sentence": "Those terms are very {dehumanizing}.",
         "ko": "그런 용어들은 매우 비인간적입니다.",
-        "hints": [
-          "비인간적인"
-        ]
+        "hints": ["비인간적인"]
       }
     ],
     "shadowing": {
@@ -223,37 +71,27 @@
       {
         "sentence": "Rents {soared}.",
         "ko": "집세가 치솟았다.",
-        "hints": [
-          "치솟았다"
-        ]
+        "hints": ["치솟았다"]
       },
       {
         "sentence": "The pandemic {hit} the city.",
         "ko": "팬데믹이 뉴욕 시티를 강타했다.",
-        "hints": [
-          "강타하다"
-        ]
+        "hints": ["강타하다"]
       },
       {
         "sentence": "{Tenants} lost the bargaining power.",
         "ko": "세입자들은 협상력을 잃었다.",
-        "hints": [
-          "세입자들"
-        ]
+        "hints": ["세입자들"]
       },
       {
         "sentence": "New York City began to {come back to life}.",
         "ko": "뉴욕시가 다시 살아나기 시작했다.",
-        "hints": [
-          "다시 살아나다"
-        ]
+        "hints": ["다시 살아나다"]
       },
       {
         "sentence": "New York City's population {dropped by} about 340,000.",
         "ko": "뉴욕시의 인구가 약 34만명 정도 줄어들었다.",
-        "hints": [
-          "~만큼 감소하다"
-        ]
+        "hints": ["~만큼 감소하다"]
       }
     ],
     "shadowing": {
@@ -269,30 +107,22 @@
       {
         "sentence": "It could {end up being} an emergency situation.",
         "ko": "결국 응급상황이 되어버릴 수 있다.",
-        "hints": [
-          "결국 ~가 되다"
-        ]
+        "hints": ["결국 ~가 되다"]
       },
       {
         "sentence": "Positive effects include better sleep, {lowering} blood pressure and filtering out allergens.",
         "ko": "긍정적인 효과에는 수면이 개선되고, 혈압이 낮아지며 알레르기 물질을 걸러 주는 것이 있다.",
-        "hints": [
-          "낮춤"
-        ]
+        "hints": ["낮춤"]
       },
       {
         "sentence": "If we're building up carbon dioxide in our body, we need to {expel} that.",
         "ko": "몸에 이산화탄소가 쌓이면 내보내야한다.",
-        "hints": [
-          "배출하다"
-        ]
+        "hints": ["배출하다"]
       },
       {
         "sentence": "Some people {swear by} taping their mouths.",
         "ko": "어떤 사람들은 입을 테이프로 붙이는 것의 효과를 매우 신뢰한다.",
-        "hints": [
-          "~의 효과를 깊이 신뢰하다"
-        ]
+        "hints": ["~의 효과를 깊이 신뢰하다"]
       }
     ],
     "shadowing": {
@@ -308,26 +138,17 @@
       {
         "sentence": "Her fellow anchors were {upset} by the viewer's {racist comment}.",
         "ko": "동료 앵커들은 그 시청자의 인종차별적인 발언에 불쾌해 했다.",
-        "hints": [
-          "불쾌한, 속상한",
-          "인종차별적인 발언"
-        ]
+        "hints": ["불쾌한, 속상한", "인종차별적인 발언"]
       },
       {
         "sentence": "Michelle Li {mentioned} that she is Korean and {had eaten} dumpling soup.",
         "ko": "미쉘리는 자신은 한국인이며 만두국을 먹었다고 언급했다.",
-        "hints": [
-          "언급하다",
-          "먹었다 (대과거)"
-        ]
+        "hints": ["언급하다", "먹었다 (대과거)"]
       },
       {
         "sentence": "One viewer left her a message saying, “{Keep} your Korean {to yourself}”.",
         "ko": "한 시청자는 그녀에게 ‘한국인인거 티내지 말라’고 메시지를 남겼다.",
-        "hints": [
-          "~를 숨기다, 혼자만 간직하다",
-          "혼자만 알다"
-        ]
+        "hints": ["~를 숨기다, 혼자만 간직하다", "혼자만 알다"]
       }
     ],
     "shadowing": {
@@ -343,31 +164,22 @@
       {
         "sentence": "{A number of} people who worked remotely at the start of the pandemic have been unwilling to {give up their autonomy}.",
         "ko": "팬데믹 초반에 원격 근무를 했던 많은 사람들이 자율성을 포기하기를 꺼려왔다.",
-        "hints": [
-          "많은 수의",
-          "자율성을 포기하다"
-        ]
+        "hints": ["많은 수의", "자율성을 포기하다"]
       },
       {
         "sentence": "The pandemic made them {reflect on their lives} and realize what they really want.",
         "ko": "팬데믹은 그들이 자신을 삶을 바라보고 정말로 원하는 것이 무엇인지 깨닫게 만들었다.",
-        "hints": [
-          "그들의 인생을 반추하게"
-        ]
+        "hints": ["그들의 인생을 반추하게"]
       },
       {
         "sentence": "They feel burned out after {working through} a year that had so many challenges.",
         "ko": "그들은 정말 많은 힘들 일이 있었던 한 해를 겪어내면서 번아웃된 느낌이다.",
-        "hints": [
-          "힘든 일을 겪어내다"
-        ]
+        "hints": ["힘든 일을 겪어내다"]
       },
       {
         "sentence": "‘The Great Resignation’ is the {growing trend} of workers quiting or just changing careers.",
         "ko": "‘대퇴사’란 노동자들이 퇴사하거나 이직하는 추세의 증가를 말한다.",
-        "hints": [
-          "증가하는 추세"
-        ]
+        "hints": ["증가하는 추세"]
       }
     ],
     "shadowing": {
@@ -376,3 +188,17 @@
     }
   }
 ]
+
+file_path = "data/worksheet.json"
+try:
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+except FileNotFoundError:
+    data = []
+
+data.extend(new_weeks)
+
+with open(file_path, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+
+print("Updated worksheet.json with weeks 5-10!")
