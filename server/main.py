@@ -82,6 +82,7 @@ async def process_youtube(req: YoutubeRequest):
         import os
         current_dir = os.path.dirname(os.path.abspath(__file__))
         cookies_file = os.path.join(current_dir, "cookies.txt")
+        render_secret_file = "/etc/secrets/cookies.txt"
         
         ydl_opts = {
             'format': 'm4a/bestaudio/best',
@@ -91,8 +92,11 @@ async def process_youtube(req: YoutubeRequest):
         
         if os.path.exists(cookies_file):
             ydl_opts['cookiefile'] = cookies_file
+        elif os.path.exists(render_secret_file):
+            ydl_opts['cookiefile'] = render_secret_file
+            cookies_file = render_secret_file
         else:
-            print(f"Warning: cookies.txt not found at {cookies_file}")
+            print(f"Warning: cookies.txt not found at {cookies_file} or {render_secret_file}")
             
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
