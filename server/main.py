@@ -80,14 +80,28 @@ async def process_youtube(req: YoutubeRequest):
     try:
         client = Groq(api_key=req.api_key)
         
-        ydl_opts = {
-            'format': 'm4a/bestaudio/best',
-            'outtmpl': f'temp_{video_id}.%(ext)s',
-            'quiet': True,
-        }
-        
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([req.url])
+        download_success = False
+        last_err = None
+        for browser in ['chrome', 'edge', 'firefox', None]:
+            ydl_opts = {
+                'format': 'm4a/bestaudio/best',
+                'outtmpl': f'temp_{video_id}.%(ext)s',
+                'quiet': True,
+            }
+            if browser:
+                ydl_opts['cookiesfrombrowser'] = (browser,)
+            
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([req.url])
+                download_success = True
+                break
+            except Exception as e:
+                last_err = e
+                continue
+                
+        if not download_success:
+            raise Exception(f"오디오 다운로드 실패 (봇 방지/브라우저 쿠키 오류): {str(last_err)}")
             
         files = glob.glob(f"temp_{video_id}.*")
         if not files:
