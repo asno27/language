@@ -23,6 +23,8 @@ export async function callGemini(mode, data, retries = 3) {
   
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
+  const temp = mode === 'daily' ? 0.9 : 0.3;
+  
   const payload = {
     contents: [
       {
@@ -35,7 +37,7 @@ export async function callGemini(mode, data, retries = 3) {
       parts: [{ text: systemPrompt }]
     },
     generationConfig: {
-      temperature: 0.3,
+      temperature: temp,
       responseMimeType: "application/json"
     }
   };
