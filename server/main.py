@@ -85,7 +85,7 @@ async def process_youtube(req: YoutubeRequest):
         render_secret_file = "/etc/secrets/cookies.txt"
         
         ydl_opts = {
-            'format': 'm4a/bestaudio/best',
+            'format': 'bestaudio/best',
             'outtmpl': f'temp_{video_id}.%(ext)s',
             'quiet': True,
             'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
