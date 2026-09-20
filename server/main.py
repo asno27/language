@@ -88,6 +88,10 @@ async def process_youtube(req: YoutubeRequest):
             'format': 'm4a/bestaudio/best',
             'outtmpl': f'temp_{video_id}.%(ext)s',
             'quiet': True,
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+            }
         }
         
         if os.path.exists(cookies_file):
