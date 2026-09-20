@@ -1,14 +1,33 @@
 import { getSystemPrompt, getUserPrompt } from './prompts.js';
 
 // API 키는 localStorage에 저장됩니다. (소스코드에 직접 입력하면 보안 위험으로 GitHub에서 차단됩니다)
+let currentKeyIndex = 0;
+
 export function getGeminiApiKey() {
-  let key = localStorage.getItem('gemini_api_key');
-  if (!key) {
-    key = prompt('Google Gemini API 키를 입력해주세요.\n(https://aistudio.google.com/apikey 에서 발급)');
-    if (key) localStorage.setItem('gemini_api_key', key);
+  let keysString = localStorage.getItem('gemini_api_key');
+  if (!keysString) {
+    keysString = prompt('Google Gemini API 키를 입력해주세요.\n여러 개일 경우 쉼표(,)로 구분해서 적어주세요.');
+    if (keysString) localStorage.setItem('gemini_api_key', keysString);
   }
-  return key;
+  if (!keysString) return null;
+  
+  const keys = keysString.split(',').map(k => k.trim()).filter(k => k);
+  if (keys.length === 0) return null;
+  
+  const keyToUse = keys[currentKeyIndex % keys.length];
+  currentKeyIndex++;
+  return keyToUse;
 }
+
+// 사용자가 콘솔에서 쉽게 키를 추가/변경할 수 있도록 전역 함수 제공
+window.updateGeminiKeys = function() {
+  const current = localStorage.getItem('gemini_api_key') || '';
+  const newKeys = prompt('Gemini API 키를 입력하세요.\n(여러 개는 쉼표로 구분)', current);
+  if (newKeys !== null) {
+    localStorage.setItem('gemini_api_key', newKeys);
+    alert('API 키가 성공적으로 업데이트되었습니다!\n저장된 키: ' + newKeys);
+  }
+};
 
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const YOUTUBE_API_URL = 'https://language-7h32.onrender.com/api/youtube';
@@ -23,8 +42,6 @@ export async function callGemini(mode, data, retries = 3) {
   
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
-  const temp = mode === 'daily' ? 0.9 : 0.3;
-  
   const payload = {
     contents: [
       {
@@ -37,7 +54,7 @@ export async function callGemini(mode, data, retries = 3) {
       parts: [{ text: systemPrompt }]
     },
     generationConfig: {
-      temperature: temp,
+      temperature: 0.3,
       responseMimeType: "application/json"
     }
   };
