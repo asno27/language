@@ -965,10 +965,7 @@ youtubeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleY
       localStorage.setItem('vocab_interests', e.target.value.trim());
     });
   }
-
-  updateVocabUI();
   updateVocabStats();
-
 // Speech setup
 if (!speech.isSupported) {
   micBtn.style.opacity = '0.5'; micBtn.style.cursor = 'not-allowed';
