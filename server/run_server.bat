@@ -22,10 +22,18 @@ echo [2/3] FastAPI 서버(main.py)를 백그라운드에서 실행합니다...
 start "FastAPI Server" cmd /c "uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
 
 echo.
-echo [3/3] Ngrok 터널링을 시작합니다...
-echo (주의: ngrok.exe가 설치되어 있고 환경 변수에 등록되어 있어야 합니다.)
-echo (만약 ngrok이 설치되어 있지 않다면 창을 닫고 FastAPI 서버만 사용하셔도 됩니다.)
+echo [3/3] Cloudflare 터널링을 시작합니다...
+if not exist "cloudflared.exe" (
+    echo Cloudflared 프로그램을 다운로드합니다...
+    powershell -Command "Invoke-WebRequest -Uri 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe' -OutFile 'cloudflared.exe'"
+)
+
 echo.
-ngrok http 8000
+echo ******************************************************
+echo 잠시 후 화면에 뜨는 주소 (https://....trycloudflare.com) 를
+echo 스마트폰 웹 앱의 [설정]에 입력해주세요!
+echo ******************************************************
+echo.
+cloudflared.exe tunnel --url http://127.0.0.1:8000
 
 pause
