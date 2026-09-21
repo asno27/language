@@ -39,7 +39,7 @@ export function getYoutubeApiUrl() {
 }
 
 // Gemini 3.6 Flash 모델 사용 (응답 속도와 품질이 매우 우수)
-const GEMINI_MODEL = 'gemini-3.6-flash';
+const GEMINI_MODEL = 'gemini-1.5-flash';
 
 export async function callGemini(mode, data, retries = 3) {
     const systemPrompt = getSystemPrompt(mode);
@@ -147,10 +147,11 @@ export async function lookupDictionary(word) {
 }
 
 export async function fetchYoutubeTranscript(url, apiKey) {
+  const groqKey = localStorage.getItem('groq_api_key') || '';
   const response = await fetch(getYoutubeApiUrl(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-    body: JSON.stringify({ url, api_key: apiKey })
+    body: JSON.stringify({ url, api_key: apiKey, groq_key: groqKey })
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
