@@ -19,7 +19,7 @@ pip install -r requirements.txt -q
 
 echo.
 echo [2/3] FastAPI 서버(main.py)를 백그라운드에서 실행합니다...
-start "FastAPI Server" cmd /c "uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+start "FastAPI Server" cmd /c "call venv\Scripts\activate.bat && uvicorn main:app --host 127.0.0.1 --port 8000 --reload"
 
 echo.
 echo [3/3] Cloudflare 터널링을 시작합니다...
