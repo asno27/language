@@ -54,7 +54,7 @@ export async function callGemini(mode, data, retries = 3) {
         try {
             const response = await fetch(backendUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                 body: JSON.stringify({
                     systemPrompt: systemPrompt,
                     userMessage: userMessage,
@@ -95,7 +95,7 @@ export async function callGemini(mode, data, retries = 3) {
   
     const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify(payload)
     });
     
@@ -149,7 +149,7 @@ export async function lookupDictionary(word) {
 export async function fetchYoutubeTranscript(url, apiKey) {
   const response = await fetch(getYoutubeApiUrl(), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
     body: JSON.stringify({ url, api_key: apiKey })
   });
   if (!response.ok) {
