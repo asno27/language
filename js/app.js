@@ -1038,6 +1038,8 @@ const saveSettingsBtn = document.getElementById('save-settings-btn');
 if (settingsBtn) {
   settingsBtn.addEventListener('click', () => {
     ngrokUrlInput.value = localStorage.getItem('backend_url') || '';
+    const groqKeyInput = document.getElementById('groq-api-key-input');
+    if(groqKeyInput) groqKeyInput.value = localStorage.getItem('groq_api_key') || '';
     settingsModal.style.display = 'block';
   });
 }
@@ -1055,6 +1057,11 @@ if (saveSettingsBtn) {
       localStorage.setItem('backend_url', url);
     } else {
       localStorage.removeItem('backend_url');
+    }
+    const groqKeyInput = document.getElementById('groq-api-key-input');
+    if(groqKeyInput) {
+        if(groqKeyInput.value.trim()) localStorage.setItem('groq_api_key', groqKeyInput.value.trim());
+        else localStorage.removeItem('groq_api_key');
     }
     settingsModal.style.display = 'none';
     alert('백엔드 서버 주소가 저장되었습니다.');
