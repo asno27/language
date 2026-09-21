@@ -378,5 +378,20 @@
   </div>
 
   <script type="module" src="js/app.js?v=5"></script>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+      <div class="modal-content" style="max-width: 400px;">
+        <span class="close-btn" id="settings-close">&times;</span>
+        <h2>⚙️ 설정</h2>
+        <div style="margin-top: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">백엔드 서버 주소 (Ngrok URL)</label>
+          <input type="text" id="ngrok-url-input" class="text-input" placeholder="https://xxxx.ngrok-free.app">
+          <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">PC에서 run_server.bat를 실행한 후 화면에 뜨는 ngrok 주소를 입력하세요.</p>
+        </div>
+        <button id="save-settings-btn" class="primary-btn" style="margin-top: 1.5rem; width: 100%;">저장하기</button>
+      </div>
+    </div>
+
 </body>
 </html>
