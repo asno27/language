@@ -167,7 +167,7 @@ async def process_llm(req: LlmRequest):
                     {"role": "system", "content": req.systemPrompt},
                     {"role": "user", "content": req.userMessage}
                 ],
-                model="llama3-70b-8192",
+                model="llama-3.1-70b-versatile",
                 response_format={"type": "json_object"},
             )
             return {"success": True, "data": json.loads(response.choices[0].message.content), "source": "groq"}
