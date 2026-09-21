@@ -8,6 +8,8 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
 import yt_dlp
 from groq import Groq
+import requests
+import json
 
 app = FastAPI()
 
@@ -22,115 +24,153 @@ class YoutubeRequest(BaseModel):
     url: str
     api_key: str
 
+class LlmRequest(BaseModel):
+    systemPrompt: str
+    userMessage: str
+    gemini_key: str
+    groq_key: str = ""
+
 def get_video_id(url: str) -> str:
-    # 정규식을 통한 유튜브 ID 추출
     pattern = r'(?:v=|\/)([0-9A-Za-z_-]{11}).*'
     match = re.search(pattern, url)
     if match:
         return match.group(1)
-    return None
+    raise ValueError("Invalid YouTube URL")
 
 def format_time(seconds):
-    m, s = divmod(int(seconds), 60)
-    h, m = divmod(m, 60)
-    return f"{h:02d}:{m:02d}:{s:02d}" if h > 0 else f"{m:02d}:{s:02d}"
-
-def chunk_transcript(items, is_whisper=False):
-    chunks = []
-    current_text = ""
-    current_start = 0
-    
-    for item in items:
-        start = item['start'] if isinstance(item, dict) else item.start
-        text = item['text'] if isinstance(item, dict) else item.text
-        
-        if not current_text:
-            current_start = start
-            
-        current_text += text + " "
-        
-        # 600자 정도마다 하나의 덩어리(청크)로 분리
-        if len(current_text) > 600:
-            chunks.append({"time": format_time(current_start), "text": current_text.strip()})
-            current_text = ""
-            
-    if current_text:
-        chunks.append({"time": format_time(current_start), "text": current_text.strip()})
-        
-    return chunks
+    h = int(seconds // 3600)
+    m = int((seconds % 3600) // 60)
+    s = int(seconds % 60)
+    if h > 0:
+        return f"{h:02d}:{m:02d}:{s:02d}"
+    return f"{m:02d}:{s:02d}"
 
 @app.post("/api/youtube")
 async def process_youtube(req: YoutubeRequest):
-    video_id = get_video_id(req.url)
-    if not video_id:
-        raise HTTPException(status_code=400, detail="유효하지 않은 유튜브 URL입니다.")
-    
-    # 1. 먼저 공식 자막(CC) 추출 시도
+    try:
+        video_id = get_video_id(req.url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     try:
         yt_api = YouTubeTranscriptApi()
         transcript = yt_api.fetch(video_id, languages=['ko', 'en', 'en-US', 'en-GB'])
-        chunks = chunk_transcript(transcript)
-        return {"segments": chunks, "source": "cc"}
-    except Exception as e:
-        print("공식 자막 가져오기 실패, 오디오 다운로드 및 Whisper 변환으로 넘어갑니다:", str(e))
-        pass
-        
-    # 2. 자막이 없으면 오디오를 다운받아 Whisper(STT) 사용
-    file_path = None
-    try:
-        client = Groq(api_key=req.api_key)
-        import os
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        cookies_file = os.path.join(current_dir, "cookies.txt")
-        render_secret_file = "/etc/secrets/cookies.txt"
-        
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'outtmpl': f'temp_{video_id}.%(ext)s',
-            'quiet': True,
-            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
-            }
-        }
-        
-        if os.path.exists(cookies_file):
-            ydl_opts['cookiefile'] = cookies_file
-        elif os.path.exists(render_secret_file):
-            ydl_opts['cookiefile'] = render_secret_file
-            cookies_file = render_secret_file
-        else:
-            print(f"Warning: cookies.txt not found at {cookies_file} or {render_secret_file}")
-            
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([req.url])
-        except Exception as e:
-            raise Exception(f"오디오 다운로드 실패 (유튜브 봇 차단 발생). cookies.txt를 추출해 server 폴더에 넣어주세요.: {str(e)}")
-            
-        files = glob.glob(f"temp_{video_id}.*")
-        if not files:
-            raise Exception("오디오 다운로드에 실패했습니다.")
-        file_path = files[0]
-        
-        if os.path.getsize(file_path) > 25 * 1024 * 1024:
-            raise Exception("오디오 파일이 너무 큽니다 (25MB 제한). 더 짧은 영상을 사용해주세요.")
-            
-        with open(file_path, "rb") as file:
-            transcription = client.audio.transcriptions.create(
-              file=(file_path, file.read()),
-              model="whisper-large-v3",
-              response_format="verbose_json"
-            )
-            
-        os.remove(file_path)
-        
-        # Whisper response has 'segments'
-        chunks = chunk_transcript(transcription.segments, is_whisper=True)
-        return {"segments": chunks, "source": "whisper"}
-        
-    except Exception as e:
-        if file_path and os.path.exists(file_path):
-            os.remove(file_path)
-        raise HTTPException(status_code=500, detail=f"오류가 발생했습니다: {str(e)}")
+        chunks = []
+        current_text = ""
+        current_start = 0
+        chunk_length = 0
 
+        for t in transcript:
+            text = t['text'].replace('\n', ' ')
+            if chunk_length == 0:
+                current_start = t['start']
+            
+            current_text += text + " "
+            chunk_length += t['duration']
+
+            if chunk_length >= 60:
+                chunks.append({"time": format_time(current_start), "text": current_text.strip()})
+                current_text = ""
+                chunk_length = 0
+        
+        if current_text:
+            chunks.append({"time": format_time(current_start), "text": current_text.strip()})
+
+        return {"success": True, "source": "cc", "chunks": chunks}
+
+    except Exception as e:
+        print(f"CC extraction failed, falling back to Whisper: {e}")
+        
+        if not req.api_key:
+            raise HTTPException(status_code=400, detail="Groq API key required for audio transcription")
+
+        try:
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'outtmpl': f'{video_id}.%(ext)s',
+                'quiet': True,
+                'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+                'http_headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+                }
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.extract_info(req.url, download=True)
+            
+            audio_files = glob.glob(f"{video_id}.*")
+            if not audio_files:
+                raise Exception("Audio download failed")
+            
+            audio_file = audio_files[0]
+            
+            if os.path.getsize(audio_file) > 25 * 1024 * 1024:
+                os.remove(audio_file)
+                raise Exception("오디오 파일이 너무 큽니다 (25MB 제한). 더 짧은 영상을 선택해주세요.")
+
+            client = Groq(api_key=req.api_key)
+            with open(audio_file, "rb") as file:
+                transcription = client.audio.transcriptions.create(
+                  file=(audio_file, file.read()),
+                  model="whisper-large-v3",
+                  prompt="Specify context or spelling",
+                  response_format="verbose_json"
+                )
+            
+            os.remove(audio_file)
+            
+            chunks = []
+            for segment in transcription.segments:
+                chunks.append({
+                    "time": format_time(segment['start']),
+                    "text": segment['text'].strip()
+                })
+
+            return {"success": True, "source": "whisper", "chunks": chunks}
+
+        except Exception as ex:
+            raise HTTPException(status_code=500, detail=f"오디오 다운로드 실패 (유튜브 봇 차단 발생).: {str(ex)}")
+
+@app.post("/api/llm")
+async def process_llm(req: LlmRequest):
+    # 1. Try Gemini
+    if req.gemini_key:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={req.gemini_key}"
+            payload = {
+                "contents": [{"role": "user", "parts": [{"text": req.userMessage}]}],
+                "systemInstruction": {"role": "system", "parts": [{"text": req.systemPrompt}]},
+                "generationConfig": {"temperature": 0.3, "responseMimeType": "application/json"}
+            }
+            res = requests.post(url, json=payload)
+            if res.status_code == 200:
+                data = res.json()
+                text = data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+                text = text.strip()
+                if text.startswith('```json'): text = text[7:]
+                if text.startswith('```'): text = text[3:]
+                if text.endswith('```'): text = text[:-3]
+                return {"success": True, "data": json.loads(text.strip()), "source": "gemini"}
+            elif res.status_code == 429:
+                print("Gemini API limit reached. Falling back to Groq...")
+            else:
+                print(f"Gemini API Error {res.status_code}: {res.text}. Falling back to Groq...")
+        except Exception as e:
+            print(f"Gemini API Request Failed: {e}. Falling back to Groq...")
+
+    # 2. Fallback to Groq
+    if req.groq_key:
+        try:
+            client = Groq(api_key=req.groq_key)
+            response = client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": req.systemPrompt},
+                    {"role": "user", "content": req.userMessage}
+                ],
+                model="llama3-70b-8192",
+                response_format={"type": "json_object"},
+            )
+            return {"success": True, "data": json.loads(response.choices[0].message.content), "source": "groq"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Groq API Error: {str(e)}")
+            
+    raise HTTPException(status_code=500, detail="Gemini failed and no Groq key provided.")
