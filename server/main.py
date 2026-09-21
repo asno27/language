@@ -77,7 +77,7 @@ async def process_youtube(req: YoutubeRequest):
         if current_text:
             chunks.append({"time": format_time(current_start), "text": current_text.strip()})
 
-        return {"success": True, "source": "cc", "chunks": chunks}
+        return {"success": True, "source": "cc", "segments": chunks}
 
     except Exception as e:
         print(f"CC extraction failed, falling back to Whisper: {e}")
@@ -126,7 +126,7 @@ async def process_youtube(req: YoutubeRequest):
                     "text": segment['text'].strip()
                 })
 
-            return {"success": True, "source": "whisper", "chunks": chunks}
+            return {"success": True, "source": "whisper", "segments": chunks}
 
         except Exception as ex:
             raise HTTPException(status_code=500, detail=f"오디오 다운로드 실패 (유튜브 봇 차단 발생).: {str(ex)}")
