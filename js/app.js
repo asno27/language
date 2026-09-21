@@ -1026,3 +1026,43 @@ if (nuanceFab) {
 }
 
 console.log('🎓 AI Language Tutor loaded successfully!');
+
+
+// === SETTINGS MODAL ===
+const settingsBtn = document.getElementById('settings-btn');
+const settingsModal = document.getElementById('settings-modal');
+const settingsCloseBtn = document.getElementById('settings-close');
+const ngrokUrlInput = document.getElementById('ngrok-url-input');
+const saveSettingsBtn = document.getElementById('save-settings-btn');
+
+if (settingsBtn) {
+  settingsBtn.addEventListener('click', () => {
+    ngrokUrlInput.value = localStorage.getItem('backend_url') || '';
+    settingsModal.style.display = 'block';
+  });
+}
+
+if (settingsCloseBtn) {
+  settingsCloseBtn.addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+  });
+}
+
+if (saveSettingsBtn) {
+  saveSettingsBtn.addEventListener('click', () => {
+    const url = ngrokUrlInput.value.trim();
+    if (url) {
+      localStorage.setItem('backend_url', url);
+    } else {
+      localStorage.removeItem('backend_url');
+    }
+    settingsModal.style.display = 'none';
+    alert('백엔드 서버 주소가 저장되었습니다.');
+  });
+}
+
+window.addEventListener('click', (e) => {
+  if (e.target === settingsModal) {
+    settingsModal.style.display = 'none';
+  }
+});
