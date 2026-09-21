@@ -30,7 +30,13 @@ window.updateGeminiKeys = function() {
 };
 
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
-const YOUTUBE_API_URL = 'https://language-7h32.onrender.com/api/youtube';
+export function getYoutubeApiUrl() {
+  const savedUrl = localStorage.getItem('backend_url');
+  if (savedUrl) {
+    return savedUrl.replace(/\/$/, '') + '/api/youtube';
+  }
+  return "https://language-7h32.onrender.com/api/youtube";
+}
 
 // Gemini 3.6 Flash 모델 사용 (응답 속도와 품질이 매우 우수)
 const GEMINI_MODEL = 'gemini-3.6-flash';
@@ -115,7 +121,7 @@ export async function lookupDictionary(word) {
 }
 
 export async function fetchYoutubeTranscript(url, apiKey) {
-  const response = await fetch(YOUTUBE_API_URL, {
+  const response = await fetch(getYoutubeApiUrl(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url, api_key: apiKey })
