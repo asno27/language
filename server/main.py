@@ -23,6 +23,7 @@ app.add_middleware(
 class YoutubeRequest(BaseModel):
     url: str
     api_key: str
+    groq_key: str = "" 
 
 class LlmRequest(BaseModel):
     systemPrompt: str
@@ -81,8 +82,8 @@ async def process_youtube(req: YoutubeRequest):
     except Exception as e:
         print(f"CC extraction failed, falling back to Whisper: {e}")
         
-        if not req.api_key:
-            raise HTTPException(status_code=400, detail="Groq API key required for audio transcription")
+        if not req.groq_key:
+            raise HTTPException(status_code=400, detail="Groq API key required for audio transcription (No CC available)")
 
         try:
             ydl_opts = {
@@ -107,7 +108,7 @@ async def process_youtube(req: YoutubeRequest):
                 os.remove(audio_file)
                 raise Exception("오디오 파일이 너무 큽니다 (25MB 제한). 더 짧은 영상을 선택해주세요.")
 
-            client = Groq(api_key=req.api_key)
+            client = Groq(api_key=req.groq_key)
             with open(audio_file, "rb") as file:
                 transcription = client.audio.transcriptions.create(
                   file=(audio_file, file.read()),
