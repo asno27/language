@@ -36,31 +36,25 @@ export async function callGemini(mode, data, retries = 3) {
     const groqKey = getGroqApiKey();
     
     // Check if local backend is configured
-    const customBackend = localStorage.getItem('backend_url');
-    if (customBackend) {
-        const backendUrl = customBackend.replace(/\/$/, '') + '/api/llm';
-        try {
-            const response = await fetch(backendUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                body: JSON.stringify({
-                    systemPrompt: systemPrompt,
-                    userMessage: userMessage,
-                    gemini_key: apiKey,
-                    groq_key: groqKey
-                })
-            });
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success) {
-                    return result.data;
-                }
-            }
-            console.warn("Backend /api/llm failed, falling back to direct frontend call...");
-        } catch (e) {
-            console.warn("Backend /api/llm error:", e, "Falling back to direct frontend call...");
-        }
-    }
+    const backendUrl = 'https://overexert-swiftly-endeared.ngrok-free.dev/api/llm';
+      try {
+          const response = await fetch(backendUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+              body: JSON.stringify({
+                  systemPrompt: systemPrompt,
+                  userMessage: userMessage,
+                  gemini_key: apiKey,
+                  groq_key: groqKey
+              })
+          });
+          if (response.ok) {
+              const result = await response.json();
+              if (result.success) return result.data;
+          }
+      } catch (e) {
+          console.warn('Backend /api/llm error:', e);
+      }
     
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
   
