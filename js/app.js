@@ -914,8 +914,15 @@ async function handleYoutubeSubmit() {
     let textContentToDownload = "=== 유튜브 영상 번역 ===\nURL: " + url + "\n\n";
     
     for (const seg of segments) {
-      const translationData = await callGemini('translation', { text: seg.text });
-      const translated = translationData.translated;
+      let translated = '번역 중 오류 발생 (건너뜀)';
+      try {
+          const translationData = await callGemini('translation', { text: seg.text });
+          if (translationData && translationData.translated) {
+              translated = translationData.translated;
+          }
+      } catch (e) {
+          console.error('Segment translation failed:', e);
+      }
       
       const segmentHtml = `
         <div class="transcript-segment fade-in" style="margin-bottom: 1.5rem; padding: 1.2rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
