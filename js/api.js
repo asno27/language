@@ -6,15 +6,6 @@ let currentKeyIndex = 0;
 export function getGroqApiKey() { return 'dummy'; }
 
 export function getGeminiApiKey() { return 'dummy'; }
-  if (!keysString) return null;
-  
-  const keys = keysString.split(',').map(k => k.trim()).filter(k => k);
-  if (keys.length === 0) return null;
-  
-  const keyToUse = keys[currentKeyIndex % keys.length];
-  currentKeyIndex++;
-  return keyToUse;
-}
 
 // ?�용?��? 콘솔?�서 ?�게 ?��? 추�?/변경할 ???�도�??�역 ?�수 ?�공
 window.updateGeminiKeys = function() {
