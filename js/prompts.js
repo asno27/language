@@ -63,9 +63,7 @@ export function getUserPrompt(mode, data) {
     case 'pronunciation':
       return `Evaluate this pronunciation and return the result in JSON format. Target: ${data.target}\nRecognized: ${data.recognized}`;
     case 'daily':
-      return `Generate 3 categorized English expressions (Travel, Business, Daily) in JSON format as instructed. 
-CRITICAL: Please provide completely NEW, UNIQUE, and uncommon expressions that are different from standard textbook examples. 
-Random seed for uniqueness: ${Math.random()}`;
+      return 'Generate 3 categorized English expressions (Travel, Business, Daily) in JSON format as instructed.';
     case 'custom_example':
       return `Generate custom examples in JSON format for the word "${data.word}" tailored to these interests: "${data.interests}"`;
     case 'nuance':
