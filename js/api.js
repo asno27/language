@@ -23,7 +23,7 @@ export function getYoutubeApiUrl() {
   if (savedUrl) {
     return savedUrl.replace(/\/$/, '') + '/api/youtube';
   }
-  return "https://language-7h32.onrender.com/api/youtube";
+  return "https://overexert-swiftly-endeared.ngrok-free.dev/api/youtube";
 }
 
 // Gemini 3.6 Flash 모델 ?�용 (?�답 ?�도?� ?�질??매우 ?�수)
@@ -147,6 +147,7 @@ export async function fetchYoutubeTranscript(url, apiKey) {
   }
   return await response.json();
 }
+
 
 
 
