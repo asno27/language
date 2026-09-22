@@ -1,4 +1,4 @@
-import { callGemini, lookupDictionary, fetchYoutubeTranscript, getGeminiApiKey } from './api.js';
+﻿import { callGemini, lookupDictionary, fetchYoutubeTranscript, getGeminiApiKey } from './api.js';
 import { SpeechManager, speak } from './speech.js';
 import { saveWord, deleteWord, getAllWords, getWordsForReview, getMasteredCount, updateReview, isWordSaved, getTotalCount } from './vocabulary.js';
 
@@ -1073,3 +1073,4 @@ window.addEventListener('click', (e) => {
     settingsModal.style.display = 'none';
   }
 });
+
