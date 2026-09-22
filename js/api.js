@@ -1,12 +1,12 @@
-import { getSystemPrompt, getUserPrompt } from './prompts.js';
+﻿import { getSystemPrompt, getUserPrompt } from './prompts.js';
 
-// API ?¤ëŠ” localStorage???€?¥ë©?ˆë‹¤. (?ŒìŠ¤ì½”ë“œ??ì§ì ‘ ?…ë ¥?˜ë©´ ë³´ì•ˆ ?„í—˜?¼ë¡œ GitHub?ì„œ ì°¨ë‹¨?©ë‹ˆ??
+// API ?�는 localStorage???�?�됩?�다. (?�스코드??직접 ?�력?�면 보안 ?�험?�로 GitHub?�서 차단?�니??
 let currentKeyIndex = 0;
 
 export function getGroqApiKey() {
   let key = localStorage.getItem('groq_api_key');
   if (!key) {
-    key = prompt('Groq API Å°¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä (À¯Æ©ºê ¿Àµð¿À ÃßÃâ ¹× ¹é¾÷ ¹ø¿ª¿ë):');
+    key = prompt('Groq API Ű�� �Է����ּ��� (��Ʃ�� ����� ���� �� ��� ������):');
     if (key) localStorage.setItem('groq_api_key', key.trim());
   }
   return key || '';
@@ -15,7 +15,7 @@ export function getGroqApiKey() {
 export function getGeminiApiKey() {
   let keysString = localStorage.getItem('gemini_api_key');
   if (!keysString) {
-    keysString = prompt('Google Gemini API ?¤ë? ?…ë ¥?´ì£¼?¸ìš”.\n?¬ëŸ¬ ê°œì¼ ê²½ìš° ?¼í‘œ(,)ë¡?êµ¬ë¶„?´ì„œ ?ì–´ì£¼ì„¸??');
+    keysString = prompt('Google Gemini API ?��? ?�력?�주?�요.\n?�러 개일 경우 ?�표(,)�?구분?�서 ?�어주세??');
     if (keysString) localStorage.setItem('gemini_api_key', keysString);
   }
   if (!keysString) return null;
@@ -28,13 +28,13 @@ export function getGeminiApiKey() {
   return keyToUse;
 }
 
-// ?¬ìš©?ê? ì½˜ì†”?ì„œ ?½ê²Œ ?¤ë? ì¶”ê?/ë³€ê²½í•  ???ˆë„ë¡??„ì—­ ?¨ìˆ˜ ?œê³µ
+// ?�용?��? 콘솔?�서 ?�게 ?��? 추�?/변경할 ???�도�??�역 ?�수 ?�공
 window.updateGeminiKeys = function() {
   const current = localStorage.getItem('gemini_api_key') || '';
-  const newKeys = prompt('Gemini API ?¤ë? ?…ë ¥?˜ì„¸??\n(?¬ëŸ¬ ê°œëŠ” ?¼í‘œë¡?êµ¬ë¶„)', current);
+  const newKeys = prompt('Gemini API ?��? ?�력?�세??\n(?�러 개는 ?�표�?구분)', current);
   if (newKeys !== null) {
     localStorage.setItem('gemini_api_key', newKeys);
-    alert('API ?¤ê? ?±ê³µ?ìœ¼ë¡??…ë°?´íŠ¸?˜ì—ˆ?µë‹ˆ??\n?€?¥ëœ ?? ' + newKeys);
+    alert('API ?��? ?�공?�으�??�데?�트?�었?�니??\n?�?�된 ?? ' + newKeys);
   }
 };
 
@@ -47,8 +47,8 @@ export function getYoutubeApiUrl() {
   return "https://language-7h32.onrender.com/api/youtube";
 }
 
-// Gemini 3.6 Flash ëª¨ë¸ ?¬ìš© (?‘ë‹µ ?ë„?€ ?ˆì§ˆ??ë§¤ìš° ?°ìˆ˜)
-const GEMINI_MODEL = 'gemini-1.5-flash';
+// Gemini 3.6 Flash 모델 ?�용 (?�답 ?�도?� ?�질??매우 ?�수)
+const GEMINI_MODEL = 'gemini-3.5-flash';
 
 export async function callGemini(mode, data, retries = 3) {
     const systemPrompt = getSystemPrompt(mode);
@@ -115,7 +115,7 @@ export async function callGemini(mode, data, retries = 3) {
         return callGemini(mode, data, retries - 1);
       }
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.error?.message || `API ?ëŸ¬: ${response.status}`);
+      throw new Error(error.error?.message || `API ?�러: ${response.status}`);
     }
     
     const resultData = await response.json();
@@ -164,8 +164,9 @@ export async function fetchYoutubeTranscript(url, apiKey) {
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail || `?œë²„ ?¤ë¥˜: ${response.status}`);
+    throw new Error(error.detail || `?�버 ?�류: ${response.status}`);
   }
   return await response.json();
 }
+
 
