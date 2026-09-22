@@ -3,21 +3,9 @@
 // API ?�는 localStorage???�?�됩?�다. (?�스코드??직접 ?�력?�면 보안 ?�험?�로 GitHub?�서 차단?�니??
 let currentKeyIndex = 0;
 
-export function getGroqApiKey() {
-  let key = localStorage.getItem('groq_api_key');
-  if (!key) {
-    key = prompt('Groq API Ű�� �Է����ּ��� (��Ʃ�� ����� ���� �� ��� ������):');
-    if (key) localStorage.setItem('groq_api_key', key.trim());
-  }
-  return key || '';
-}
+export function getGroqApiKey() { return 'dummy'; }
 
-export function getGeminiApiKey() {
-  let keysString = localStorage.getItem('gemini_api_key');
-  if (!keysString) {
-    keysString = prompt('Google Gemini API ?��? ?�력?�주?�요.\n?�러 개일 경우 ?�표(,)�?구분?�서 ?�어주세??');
-    if (keysString) localStorage.setItem('gemini_api_key', keysString);
-  }
+export function getGeminiApiKey() { return 'dummy'; }
   if (!keysString) return null;
   
   const keys = keysString.split(',').map(k => k.trim()).filter(k => k);
@@ -168,5 +156,6 @@ export async function fetchYoutubeTranscript(url, apiKey) {
   }
   return await response.json();
 }
+
 
 
